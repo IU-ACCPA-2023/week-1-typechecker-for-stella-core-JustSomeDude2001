@@ -13,6 +13,8 @@ set (Stella_Syntax
   Stella/Buffer.C
   Stella/Bison.H
   Stella/Lexer.C
+        MyVisitor.cpp
+        MyVisitor.h
 )
 
 set (SRCS
