@@ -13,6 +13,7 @@ set (Stella_Syntax
   Stella/Buffer.C
   Stella/Bison.H
   Stella/Lexer.C
+        Enums.h
         MyVisitor.cpp
         MyVisitor.h
 )

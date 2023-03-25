@@ -4,9 +4,15 @@
 
 #include "MyVisitor.h"
 #include <iostream>
+#include <vector>
 
 namespace Stella
 {
+
+    void printVisitableInfo(Visitable *v, std::string name = "UNSPECIFIED") {
+        std::cout << "Visited " << name << '\n';
+    }
+
     void MyVisitor::visitProgram(Program *t) {} //abstract class
     void MyVisitor::visitLanguageDecl(LanguageDecl *t) {} //abstract class
     void MyVisitor::visitExtension(Extension *t) {} //abstract class
@@ -38,7 +44,6 @@ namespace Stella
         if (a_program->languagedecl_) a_program->languagedecl_->accept(this);
         if (a_program->listextension_) a_program->listextension_->accept(this);
         if (a_program->listdecl_) a_program->listdecl_->accept(this);
-
     }
 
     void MyVisitor::visitLanguageCore(LanguageCore *language_core)
@@ -62,12 +67,19 @@ namespace Stella
 
         if (decl_fun->listannotation_) decl_fun->listannotation_->accept(this);
         visitStellaIdent(decl_fun->stellaident_);
+
+        current_scope++;
+
         if (decl_fun->listparamdecl_) decl_fun->listparamdecl_->accept(this);
         if (decl_fun->returntype_) decl_fun->returntype_->accept(this);
+
+        std::cout << "Function " << decl_fun->stellaident_ << " return type: " << contextStack.back().second << '\n';
+
         if (decl_fun->throwtype_) decl_fun->throwtype_->accept(this);
         if (decl_fun->listdecl_) decl_fun->listdecl_->accept(this);
         if (decl_fun->expr_) decl_fun->expr_->accept(this);
 
+        current_scope--;
     }
 
     void MyVisitor::visitDeclTypeAlias(DeclTypeAlias *decl_type_alias)
@@ -114,8 +126,9 @@ namespace Stella
     {
         /* Code For SomeReturnType Goes Here */
 
-        if (some_return_type->type_) some_return_type->type_->accept(this);
+        std::cout << "Visiting SomeReturnType at " << some_return_type->line_number << ":" << some_return_type->char_number << '\n';
 
+        if (some_return_type->type_) some_return_type->type_->accept(this);
     }
 
     void MyVisitor::visitNoThrowType(NoThrowType *no_throw_type)
@@ -137,10 +150,13 @@ namespace Stella
     {
         /* Code For If Goes Here */
 
+        current_scope++;
+
         if (if_->expr_1) if_->expr_1->accept(this);
         if (if_->expr_2) if_->expr_2->accept(this);
         if (if_->expr_3) if_->expr_3->accept(this);
 
+        current_scope--;
     }
 
     void MyVisitor::visitLet(Let *let)
@@ -303,6 +319,7 @@ namespace Stella
 
     }
 
+    // FUNCTION CALL #FUNCTIONCALL This is how its called here.
     void MyVisitor::visitApplication(Application *application)
     {
         /* Code For Application Goes Here */
@@ -351,6 +368,15 @@ namespace Stella
 
         if (succ->expr_) succ->expr_->accept(this);
 
+        VisitableTag lastTag = contextStack.back().second;
+
+        if (lastTag != VisitableTag::tagConstInt) {
+            std::cout << "Expected Nat at " << succ->line_number << ":" << succ->char_number << '\n';
+            exit(1);
+        } else {
+            contextStack.pop_back();
+            contextStack.push_back(std::make_pair(current_scope, tagConstInt));
+        }
     }
 
     void MyVisitor::visitLogicNot(LogicNot *logic_not)
@@ -388,6 +414,8 @@ namespace Stella
     void MyVisitor::visitNatRec(NatRec *nat_rec)
     {
         /* Code For NatRec Goes Here */
+
+        std::cout << "Visiting NatRec\n";
 
         if (nat_rec->expr_1) nat_rec->expr_1->accept(this);
         if (nat_rec->expr_2) nat_rec->expr_2->accept(this);
@@ -435,19 +463,24 @@ namespace Stella
     {
         /* Code For ConstTrue Goes Here */
 
+        std::cout << "Visiting ConstTrue at " << const_true->line_number << ":" << const_true->char_number << '\n';
 
+        contextStack.push_back(std::make_pair(current_scope, tagConstTrue));
     }
 
     void MyVisitor::visitConstFalse(ConstFalse *const_false)
     {
         /* Code For ConstFalse Goes Here */
+        std::cout << "Visiting ConsFalse at " << const_false->line_number << ":" << const_false->char_number << '\n';
 
-
+        contextStack.push_back(std::make_pair(current_scope, tagConstFalse));
     }
 
     void MyVisitor::visitConstInt(ConstInt *const_int)
     {
         /* Code For ConstInt Goes Here */
+
+        std::cout << "Visiting ConstInt " << const_int->integer_ << " at " << const_int->line_number << ":" << const_int->char_number << '\n';
 
         visitInteger(const_int->integer_);
 
@@ -675,15 +708,16 @@ namespace Stella
     void MyVisitor::visitTypeBool(TypeBool *type_bool)
     {
         /* Code For TypeBool Goes Here */
-
-
+        
     }
 
     void MyVisitor::visitTypeNat(TypeNat *type_nat)
     {
         /* Code For TypeNat Goes Here */
 
+        std::cout << "Visiting TypeNat at " << type_nat->line_number << ":" << type_nat->char_number << '\n';
 
+        contextStack.push_back(std::make_pair(current_scope, tagTypeNat));
     }
 
     void MyVisitor::visitTypeUnit(TypeUnit *type_unit)
@@ -755,6 +789,7 @@ namespace Stella
 
     void MyVisitor::visitListDecl(ListDecl *list_decl)
     {
+        std::cout << "Visiting ListDecl of " << list_decl->size() << " elements\n";
         for (ListDecl::iterator i = list_decl->begin() ; i != list_decl->end() ; ++i)
         {
             (*i)->accept(this);
@@ -763,6 +798,7 @@ namespace Stella
 
     void MyVisitor::visitListLocalDecl(ListLocalDecl *list_local_decl)
     {
+        std::cout << "Visiting LocalListDecl of " << list_local_decl->size() << " elements\n";
         for (ListLocalDecl::iterator i = list_local_decl->begin() ; i != list_local_decl->end() ; ++i)
         {
             (*i)->accept(this);
@@ -771,6 +807,7 @@ namespace Stella
 
     void MyVisitor::visitListAnnotation(ListAnnotation *list_annotation)
     {
+        std::cout << "Visiting ListAnnotation of " << list_annotation->size() << " elements\n";
         for (ListAnnotation::iterator i = list_annotation->begin() ; i != list_annotation->end() ; ++i)
         {
             (*i)->accept(this);
@@ -779,6 +816,7 @@ namespace Stella
 
     void MyVisitor::visitListParamDecl(ListParamDecl *list_param_decl)
     {
+        std::cout << "Visiting ListParamDecl of " << list_param_decl->size() << " elements\n";
         for (ListParamDecl::iterator i = list_param_decl->begin() ; i != list_param_decl->end() ; ++i)
         {
             (*i)->accept(this);
@@ -787,6 +825,7 @@ namespace Stella
 
     void MyVisitor::visitListExpr(ListExpr *list_expr)
     {
+        std::cout << "Visiting ListExpr of " << list_expr->size() << " elements\n";
         for (ListExpr::iterator i = list_expr->begin() ; i != list_expr->end() ; ++i)
         {
             (*i)->accept(this);
@@ -854,14 +893,16 @@ namespace Stella
     {
         /* Code for Integer Goes Here */
 
-        std::cout << "Visiting Integer...";
+        std::cout << "Adding Integer to context stack...\n";
+
+        contextStack.push_back(std::make_pair(current_scope, tagConstInt));
     }
 
     void MyVisitor::visitChar(Char x)
     {
         /* Code for Char Goes Here */
 
-        std::cout << "Visiting Char...";
+        std::cout << "Visiting Char...\n";
     }
 
     void MyVisitor::visitDouble(Double x)
@@ -877,11 +918,13 @@ namespace Stella
     void MyVisitor::visitIdent(Ident x)
     {
         /* Code for Ident Goes Here */
+        std::cout << "Visiting Ident " << x << '\n';
     }
 
     void MyVisitor::visitStellaIdent(StellaIdent x)
     {
         /* Code for StellaIdent Goes Here */
+        std::cout << "Visiting StellaIdent " << x << '\n';
     }
 
     void MyVisitor::visitExtensionName(ExtensionName x)

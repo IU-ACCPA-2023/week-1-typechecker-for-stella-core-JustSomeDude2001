@@ -3,10 +3,20 @@
 //
 
 #include "Stella/Absyn.H"
+#include <map>
+#include <string>
+#include <vector>
+#include "Enums.h"
 
 namespace Stella {
     class MyVisitor : public Visitor {
     public:
+
+        int current_scope = 0;
+
+        //std::map<std::pair<int, Ident>, Type> variables;
+        std::vector <std::pair<int, VisitableTag> > contextStack = {};
+
         void visitProgram(Program *p);
 
         void visitLanguageDecl(LanguageDecl *p);
