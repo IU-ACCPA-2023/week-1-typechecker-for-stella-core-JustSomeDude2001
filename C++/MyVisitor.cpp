@@ -115,6 +115,14 @@ namespace Stella
         }
 
         if (actualReturns != returnTypes) {
+            std::cout << actualReturns.size() << '\n';
+            for (int i = 0; i < actualReturns.size(); i++) {
+                actualReturns[i].print();
+            }
+            std::cout << returnTypes.size() << '\n';
+            for (int i = 0; i < returnTypes.size(); i++) {
+                returnTypes[i].print();
+            }
             std::cout << "Type mismatch between declared and actual in function " << ident << " declaration at "
                       << decl_fun->line_number << ":" << decl_fun->char_number << '\n';
             exit(1);
@@ -310,6 +318,8 @@ namespace Stella
     void MyVisitor::visitAbstraction(Abstraction *abstraction)
     {
         /* Code For Abstraction Goes Here */
+
+        std::cout << "Visiting Abstraction at " << abstraction->line_number << ":" << abstraction->char_number << '\n';
 
         if (abstraction->listparamdecl_) abstraction->listparamdecl_->accept(this);
         if (abstraction->expr_) abstraction->expr_->accept(this);
@@ -766,9 +776,34 @@ namespace Stella
     {
         /* Code For TypeFun Goes Here */
 
-        if (type_fun->listtype_) type_fun->listtype_->accept(this);
-        if (type_fun->type_) type_fun->type_->accept(this);
+        std::cout << "Visiting TypeFun at " << type_fun->line_number << ":" << type_fun->char_number << '\n';
 
+        int startSize = contextStack.size();
+        std::vector<StoredType> argsTypes = {};
+        if (type_fun->listtype_) type_fun->listtype_->accept(this);
+        resolveIdents(startSize);
+        for (int i = startSize; i < contextStack.size(); i++) {
+            argsTypes.push_back(contextStack[i]);
+        }
+
+        int returnTypesStart = contextStack.size();
+        std::vector<StoredType> returnTypes = {};
+        if (type_fun->type_) type_fun->type_->accept(this);
+        resolveIdents(returnTypesStart);
+        for (int i = returnTypesStart; i < contextStack.size(); i++) {
+            returnTypes.push_back(contextStack[i]);
+        }
+
+        StoredType result = ST_FUN;
+        result.scope = current_scope;
+        result.returnTypes = returnTypes;
+        result.argsTypes = argsTypes;
+
+        while (contextStack.size() > startSize) {
+            contextStack.pop_back();
+        }
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTypeRec(TypeRec *type_rec)
