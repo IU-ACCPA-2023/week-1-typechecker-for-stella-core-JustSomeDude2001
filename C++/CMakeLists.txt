@@ -16,6 +16,7 @@ set (Stella_Syntax
         Enums.h
         StoredType.h
         StoredType.cpp
+        Consts.h
         MyVisitor.cpp
         MyVisitor.h
 )

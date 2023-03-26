@@ -60,6 +60,14 @@ namespace Stella {
         bool operator!=(StoredType const& b) {
             return !(*this == b);
         }
+
+        StoredType& operator= (const StoredType &b) {
+            tag = b.tag;
+            scope = b.scope;
+            argsTypes = b.argsTypes;
+            returnTypes = b.returnTypes;
+            return *this;
+        }
     };
 
 } // Stella

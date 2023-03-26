@@ -361,6 +361,11 @@ namespace Stella
         /* Code For Succ Goes Here */
 
         if (succ->expr_) succ->expr_->accept(this);
+
+        if (contextStack.back().second != ST_NAT) {
+            std::cout << "Expected Nat at " << succ->line_number << ":" << succ->char_number << '\n';
+            exit(1);
+        }
     }
 
     void MyVisitor::visitLogicNot(LogicNot *logic_not)
@@ -448,12 +453,22 @@ namespace Stella
         /* Code For ConstTrue Goes Here */
 
         std::cout << "Visiting ConstTrue at " << const_true->line_number << ":" << const_true->char_number << '\n';
+
+        StoredType result = ST_BOOL;
+        result.scope = current_scope;
+
+        contextStack.push_back(std::make_pair("", result));
     }
 
     void MyVisitor::visitConstFalse(ConstFalse *const_false)
     {
         /* Code For ConstFalse Goes Here */
         std::cout << "Visiting ConstFalse at " << const_false->line_number << ":" << const_false->char_number << '\n';
+
+        StoredType result = ST_BOOL;
+        result.scope = current_scope;
+
+        contextStack.push_back(std::make_pair("", result));
     }
 
     void MyVisitor::visitConstInt(ConstInt *const_int)
@@ -870,13 +885,17 @@ namespace Stella
     void MyVisitor::visitInteger(Integer x)
     {
         /* Code for Integer Goes Here */
+
+        StoredType result = ST_NAT;
+        result.scope = current_scope;
+
+        contextStack.push_back(std::make_pair("", result));
     }
 
     void MyVisitor::visitChar(Char x)
     {
         /* Code for Char Goes Here */
 
-        std::cout << "Visiting Char...\n";
     }
 
     void MyVisitor::visitDouble(Double x)

@@ -8,6 +8,7 @@
 #include <vector>
 #include <stack>
 #include "StoredType.h"
+#include "Consts.h"
 
 namespace Stella {
     class MyVisitor : public Visitor {
@@ -22,6 +23,15 @@ namespace Stella {
         // Since shadowing and scopes are a thing, we will look at top type.
         std::map <std::string, std::vector<StoredType> > identMap;
         // TO-DO purge map of higher scope items
+
+        MyVisitor() {
+            // Add in some built-in functions.
+
+            identMap["succ"].push_back(StoredType(VisitableTag::tagTypeFunction,
+                                                  -1,
+                                                  {ST_NAT},
+                                                  {ST_NAT}));
+        }
 
         void visitProgram(Program *p);
 
