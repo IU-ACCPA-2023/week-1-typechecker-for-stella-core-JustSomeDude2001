@@ -56,6 +56,21 @@ namespace Stella {
             }
         }
 
+        void increaseScope() {
+            current_scope++;
+        }
+
+        void decreaseScope() {
+            current_scope--;
+            purgeIdents();
+        }
+
+        void cutContextStack(int targetSize) {
+            if(targetSize < contextStack.size()) {
+                contextStack.resize(targetSize);
+            }
+        }
+
         void visitProgram(Program *p);
 
         void visitLanguageDecl(LanguageDecl *p);

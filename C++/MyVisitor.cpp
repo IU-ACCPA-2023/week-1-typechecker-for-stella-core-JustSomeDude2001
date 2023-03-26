@@ -83,36 +83,25 @@ namespace Stella
         visitStellaIdent(decl_fun->stellaident_);
         std::string ident = contextStack.back().ident;
 
-        current_scope++;
+        increaseScope();
 
-        std::vector <StoredType> params = {};
         int paramsStart = contextStack.size();
         if (decl_fun->listparamdecl_) decl_fun->listparamdecl_->accept(this);
         resolveIdents(paramsStart);
-        for (int i = paramsStart; i < contextStack.size(); i++) {
-            params.push_back(contextStack[i]);
-        }
+        std::vector <StoredType> params(contextStack.begin() + paramsStart, contextStack.end());
 
-        std::vector <StoredType> returnTypes = {};
         int returnTypesStart = contextStack.size();
         if (decl_fun->returntype_) decl_fun->returntype_->accept(this);
         resolveIdents(returnTypesStart);
-        for (int i = returnTypesStart; i < contextStack.size(); i++) {
-            returnTypes.push_back(contextStack[i]);
-        }
+        std::vector <StoredType> returnTypes(contextStack.begin() + returnTypesStart, contextStack.end());
 
         if (decl_fun->throwtype_) decl_fun->throwtype_->accept(this);
         if (decl_fun->listdecl_) decl_fun->listdecl_->accept(this);
 
-        std::vector <StoredType> actualReturns = {};
         int actualReturnsStart = contextStack.size();
-
-
         if (decl_fun->expr_) decl_fun->expr_->accept(this);
         resolveIdents(actualReturnsStart);
-        for (int i = actualReturnsStart; i < contextStack.size(); i++) {
-            actualReturns.push_back(contextStack[i]);
-        }
+        std::vector <StoredType> actualReturns(contextStack.begin() + actualReturnsStart, contextStack.end());
 
         if (actualReturns != returnTypes) {
             std::cout << actualReturns.size() << '\n';
@@ -128,8 +117,7 @@ namespace Stella
             exit(1);
         }
 
-        current_scope--;
-        purgeIdents();
+        decreaseScope();
 
         StoredType result = ST_FUN;
         result.ident = ident;
@@ -139,9 +127,7 @@ namespace Stella
 
         identMap[result.ident].push_back(result);
 
-        while(contextStack.size() > startSize) {
-            contextStack.pop_back();
-        }
+        cutContextStack(startSize);
 
         contextStack.push_back(result);
     }
@@ -410,7 +396,8 @@ namespace Stella
         /* Code For Application Goes Here */
         std::cout << "Visiting Applicaton at " << application->line_number << ":" << application->char_number << '\n';
 
-        current_scope++;
+        increaseScope();
+
         int startSize = contextStack.size();
         if (application->expr_) application->expr_->accept(this);
 
@@ -426,13 +413,8 @@ namespace Stella
 
         int argListStart = contextStack.size();
         if (application->listexpr_) application->listexpr_->accept(this);
-
         resolveIdents(argListStart);
-
-        std::vector <StoredType> argStack = {};
-        for (int i = argListStart; i < contextStack.size(); i++) {
-            argStack.push_back(contextStack[i]);
-        }
+        std::vector <StoredType> argStack(contextStack.begin() + argListStart, contextStack.end());
 
         if (argStack != function.argsTypes) {
             std::cout << "Argument type mismatch at application at "
@@ -441,11 +423,9 @@ namespace Stella
             exit(1);
         }
 
-        current_scope--;
-        purgeIdents();
-        while (contextStack.size() > startSize) {
-            contextStack.pop_back();
-        }
+        decreaseScope();
+
+        cutContextStack(startSize);
 
         for (int i = 0; i < function.returnTypes.size(); i++) {
             contextStack.push_back(function.returnTypes[i]);
@@ -779,29 +759,21 @@ namespace Stella
         std::cout << "Visiting TypeFun at " << type_fun->line_number << ":" << type_fun->char_number << '\n';
 
         int startSize = contextStack.size();
-        std::vector<StoredType> argsTypes = {};
         if (type_fun->listtype_) type_fun->listtype_->accept(this);
         resolveIdents(startSize);
-        for (int i = startSize; i < contextStack.size(); i++) {
-            argsTypes.push_back(contextStack[i]);
-        }
+        std::vector<StoredType> argsTypes(contextStack.begin() + startSize, contextStack.end());
 
         int returnTypesStart = contextStack.size();
-        std::vector<StoredType> returnTypes = {};
         if (type_fun->type_) type_fun->type_->accept(this);
         resolveIdents(returnTypesStart);
-        for (int i = returnTypesStart; i < contextStack.size(); i++) {
-            returnTypes.push_back(contextStack[i]);
-        }
+        std::vector<StoredType> returnTypes(contextStack.begin() + returnTypesStart, contextStack.end());
 
         StoredType result = ST_FUN;
         result.scope = current_scope;
         result.returnTypes = returnTypes;
         result.argsTypes = argsTypes;
 
-        while (contextStack.size() > startSize) {
-            contextStack.pop_back();
-        }
+        cutContextStack(startSize);
 
         contextStack.push_back(result);
     }
