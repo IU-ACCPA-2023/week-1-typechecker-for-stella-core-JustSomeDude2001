@@ -77,6 +77,8 @@ namespace Stella
     {
         /* Code For DeclFun Goes Here */
 
+        int startSize = contextStack.size();
+
         if (decl_fun->listannotation_) decl_fun->listannotation_->accept(this);
         visitStellaIdent(decl_fun->stellaident_);
         std::string ident = contextStack.back().ident;
@@ -128,6 +130,12 @@ namespace Stella
         result.scope = current_scope;
 
         identMap[result.ident].push_back(result);
+
+        while(contextStack.size() > startSize) {
+            contextStack.pop_back();
+        }
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitDeclTypeAlias(DeclTypeAlias *decl_type_alias)

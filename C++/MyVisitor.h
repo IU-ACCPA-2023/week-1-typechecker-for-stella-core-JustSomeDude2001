@@ -36,6 +36,10 @@ namespace Stella {
         void resolveIdents(int start = 0) {
             for (int i = start; i < contextStack.size(); i++) {
                 if (contextStack[i].tag == VisitableTag::tagTypeIdent) {
+                    if (identMap[contextStack[i].ident].empty()) {
+                        std::cout << "Unresolved identifier " << contextStack[i].ident << '\n';
+                        exit(1);
+                    }
                     StoredType result = identMap[contextStack[i].ident].back();
                     result.ident = contextStack[i].ident;
                     contextStack[i] = result;
