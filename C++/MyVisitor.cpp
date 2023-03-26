@@ -104,15 +104,15 @@ namespace Stella
         std::vector <StoredType> actualReturns(contextStack.begin() + actualReturnsStart, contextStack.end());
 
         if (actualReturns != returnTypes) {
-            std::cout << actualReturns.size() << '\n';
+            /*std::cout << actualReturns.size() << '\n';
             for (int i = 0; i < actualReturns.size(); i++) {
                 actualReturns[i].print();
             }
             std::cout << returnTypes.size() << '\n';
             for (int i = 0; i < returnTypes.size(); i++) {
                 returnTypes[i].print();
-            }
-            std::cout << "Type mismatch between declared and actual in function " << ident << " declaration at "
+            }*/
+            std::cout << "Type mismatch between expected and actual in function " << ident << " declaration at "
                       << decl_fun->line_number << ":" << decl_fun->char_number << '\n';
             exit(1);
         }
@@ -219,13 +219,41 @@ namespace Stella
     {
         /* Code For If Goes Here */
 
-        current_scope++;
+        std::cout << "Visiting If at " << if_->line_number << ":" << if_->char_number << '\n';
 
+        increaseScope();
+
+        int startSize = contextStack.size();
         if (if_->expr_1) if_->expr_1->accept(this);
-        if (if_->expr_2) if_->expr_2->accept(this);
-        if (if_->expr_3) if_->expr_3->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> condition(contextStack.begin() + startSize, contextStack.end());
 
-        current_scope--;
+        int returnType1Start = contextStack.size();
+        if (if_->expr_2) if_->expr_2->accept(this);
+        resolveIdents(returnType1Start);
+        std::vector<StoredType> returnType1(contextStack.begin() + returnType1Start, contextStack.end());
+
+        int returnType2Start = contextStack.size();
+        if (if_->expr_3) if_->expr_3->accept(this);
+        resolveIdents(returnType2Start);
+        std::vector<StoredType> returnType2(contextStack.begin() + returnType2Start, contextStack.end());
+
+        if (condition.size() != 1 || condition.back().tag != VisitableTag::tagTypeBool) {
+            std::cout << "conditional for if is not a boolean at " << if_->line_number << ":" << if_->char_number << '\n';
+            exit(1);
+        }
+
+        if (returnType1 != returnType2) {
+            std::cout << "returned types of if do not match at " << if_->line_number << ":" << if_->char_number << '\n';
+            exit(1);
+        }
+
+        decreaseScope();
+
+        cutContextStack(startSize);
+
+        for (int i = 0; i < returnType1.size(); i++)
+            contextStack.push_back(returnType1[i]);
     }
 
     void MyVisitor::visitLet(Let *let)
@@ -307,9 +335,24 @@ namespace Stella
 
         std::cout << "Visiting Abstraction at " << abstraction->line_number << ":" << abstraction->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (abstraction->listparamdecl_) abstraction->listparamdecl_->accept(this);
-        if (abstraction->expr_) abstraction->expr_->accept(this);
+        resolveIdents(startSize);
+        std::vector <StoredType> argsTypes(contextStack.begin() + startSize, contextStack.end());
 
+        int returnTypesStart = contextStack.size();
+        if (abstraction->expr_) abstraction->expr_->accept(this);
+        resolveIdents(returnTypesStart);
+        std::vector <StoredType> returnTypes(contextStack.begin() + returnTypesStart, contextStack.end());
+
+        StoredType result = ST_FUN;
+        result.scope = current_scope;
+        result.returnTypes = returnTypes;
+        result.argsTypes = argsTypes;
+
+        cutContextStack(startSize);
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTuple(Tuple *tuple)
@@ -515,12 +558,47 @@ namespace Stella
     {
         /* Code For NatRec Goes Here */
 
-        std::cout << "Visiting NatRec\n";
+        std::cout << "Visiting NatRec at " << nat_rec->line_number << ":" << nat_rec->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (nat_rec->expr_1) nat_rec->expr_1->accept(this);
-        if (nat_rec->expr_2) nat_rec->expr_2->accept(this);
-        if (nat_rec->expr_3) nat_rec->expr_3->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> n(contextStack.begin() + startSize, contextStack.end());
 
+        int zStartSize = contextStack.size();
+        if (nat_rec->expr_2) nat_rec->expr_2->accept(this);
+        resolveIdents(zStartSize);
+        std::vector<StoredType> z(contextStack.begin() + zStartSize, contextStack.end());
+
+        int sStartSize = contextStack.size();
+        if (nat_rec->expr_3) nat_rec->expr_3->accept(this);
+        resolveIdents(sStartSize);
+        std::vector<StoredType> s(contextStack.begin() + sStartSize, contextStack.end());
+
+        if (n.size() != 1 || n.back() != ST_NAT) {
+            std::cout << "N is not Nat in Nat::rec at " << nat_rec->line_number << ":" << nat_rec->char_number << '\n';
+            exit(1);
+        }
+
+        StoredType expected = StoredType(VisitableTag::tagTypeFunction,
+                                         current_scope,
+                                         {ST_NAT},
+                                         {
+                                            StoredType(VisitableTag::tagTypeFunction,
+                                                       current_scope,
+                                                       z,
+                                                       z)
+                                         });
+
+        if (s.size() != 1 || s.back() != expected) {
+            std::cout << "Type mismatch between Z and S in Nat::rec at " << nat_rec->line_number << ":" << nat_rec->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        for (int i = 0; i < z.size(); i++)
+            contextStack.push_back(z[i]);
     }
 
     void MyVisitor::visitFold(Fold *fold)
