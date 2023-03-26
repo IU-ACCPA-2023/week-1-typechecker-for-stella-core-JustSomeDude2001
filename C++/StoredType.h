@@ -8,6 +8,7 @@
 #include "Enums.h"
 #include <vector>
 #include <string>
+#include <iostream>
 
 namespace Stella {
 
@@ -36,7 +37,7 @@ namespace Stella {
             returnTypes = _returnTypes;
         }
 
-        bool operator==(StoredType const& b) {
+        bool operator==(const StoredType& b) {
             if (tag != b.tag ||
                 argsTypes.size() != b.argsTypes.size() ||
                 returnTypes.size() != b.returnTypes.size()) {
@@ -59,8 +60,8 @@ namespace Stella {
             return true;
         }
 
-        bool operator!=(StoredType const& b) {
-            return !(*this == b);
+        bool operator!=(const StoredType& b) {
+            return !(this->operator==(b));
         }
 
         StoredType& operator= (const StoredType &b) {
@@ -70,8 +71,22 @@ namespace Stella {
             returnTypes = b.returnTypes;
             return *this;
         }
-    };
 
+        void print() {
+            std::cout << "\n===============\n";
+            std::cout << "Ident:      " << ident << '\n';
+            std::cout << "Tag:        " << tag << '\n';
+            std::cout << "ArgTags:    ";
+            for (int i = 0; i < argsTypes.size(); i++) {
+                std::cout << argsTypes[i].tag << " ";
+            } std::cout << '\n';
+            std::cout << "ReturnTags: ";
+            for (int i = 0; i < returnTypes.size(); i++) {
+                std::cout << returnTypes[i].tag << " ";
+            } std::cout << '\n';
+            std::cout << "\n===============\n";
+        }
+    };
 } // Stella
 
 #endif //WEEK_1_TYPECHECKER_FOR_STELLA_CORE_JUSTSOMEDUDE2001_STOREDTYPE_H

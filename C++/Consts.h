@@ -8,4 +8,5 @@ namespace Stella {
     const StoredType ST_NAT = StoredType(VisitableTag::tagTypeNat);
     const StoredType ST_BOOL = StoredType(VisitableTag::tagTypeBool);
     const StoredType ST_IDENT = StoredType(VisitableTag::tagTypeIdent);
+    const StoredType ST_FUN = StoredType(VisitableTag::tagTypeFunction);
 }

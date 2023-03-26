@@ -8,6 +8,22 @@
 
 namespace Stella
 {
+    bool operator== (std::vector<StoredType> &a, std::vector<StoredType> &b) {
+        if (a.size() != b.size()) {
+            return false;
+        }
+        for (int i = 0; i < a.size(); i++) {
+            if (a[i] != b[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool operator != (std::vector<StoredType> &a, std::vector<StoredType> &b) {
+        return !(operator==(a, b));
+    }
+
     void MyVisitor::visitProgram(Program *t) {} //abstract class
     void MyVisitor::visitLanguageDecl(LanguageDecl *t) {} //abstract class
     void MyVisitor::visitExtension(Extension *t) {} //abstract class
@@ -39,10 +55,6 @@ namespace Stella
         if (a_program->languagedecl_) a_program->languagedecl_->accept(this);
         if (a_program->listextension_) a_program->listextension_->accept(this);
         if (a_program->listdecl_) a_program->listdecl_->accept(this);
-
-        for (auto it = identMap.begin(); it != identMap.end(); it++) {
-            std::cout << it -> first << '\n';
-        }
     }
 
     void MyVisitor::visitLanguageCore(LanguageCore *language_core)
@@ -67,18 +79,55 @@ namespace Stella
 
         if (decl_fun->listannotation_) decl_fun->listannotation_->accept(this);
         visitStellaIdent(decl_fun->stellaident_);
+        std::string ident = contextStack.back().ident;
 
         current_scope++;
 
+        std::vector <StoredType> params = {};
+        int paramsStart = contextStack.size();
         if (decl_fun->listparamdecl_) decl_fun->listparamdecl_->accept(this);
+        resolveIdents(paramsStart);
+        for (int i = paramsStart; i < contextStack.size(); i++) {
+            params.push_back(contextStack[i]);
+        }
+
+        std::vector <StoredType> returnTypes = {};
+        int returnTypesStart = contextStack.size();
         if (decl_fun->returntype_) decl_fun->returntype_->accept(this);
+        resolveIdents(returnTypesStart);
+        for (int i = returnTypesStart; i < contextStack.size(); i++) {
+            returnTypes.push_back(contextStack[i]);
+        }
+
         if (decl_fun->throwtype_) decl_fun->throwtype_->accept(this);
         if (decl_fun->listdecl_) decl_fun->listdecl_->accept(this);
+
+        std::vector <StoredType> actualReturns = {};
+        int actualReturnsStart = contextStack.size();
+
+
         if (decl_fun->expr_) decl_fun->expr_->accept(this);
+        resolveIdents(actualReturnsStart);
+        for (int i = actualReturnsStart; i < contextStack.size(); i++) {
+            actualReturns.push_back(contextStack[i]);
+        }
+
+        if (actualReturns != returnTypes) {
+            std::cout << "Type mismatch between declared and actual in function " << ident << " declaration at "
+                      << decl_fun->line_number << ":" << decl_fun->char_number << '\n';
+            exit(1);
+        }
 
         current_scope--;
-
         purgeIdents();
+
+        StoredType result = ST_FUN;
+        result.ident = ident;
+        result.argsTypes = params;
+        result.returnTypes = returnTypes;
+        result.scope = current_scope;
+
+        identMap[result.ident].push_back(result);
     }
 
     void MyVisitor::visitDeclTypeAlias(DeclTypeAlias *decl_type_alias)
@@ -343,18 +392,46 @@ namespace Stella
         /* Code For Application Goes Here */
         std::cout << "Visiting Applicaton at " << application->line_number << ":" << application->char_number << '\n';
 
+        current_scope++;
+        int startSize = contextStack.size();
         if (application->expr_) application->expr_->accept(this);
 
         resolveIdents(contextStack.size() - 1);
         StoredType function = contextStack.back();
 
+        std::cout << "Obtained ident: " << function.ident << '\n';
+
         if (function.tag != VisitableTag::tagTypeFunction) {
-            std::cout << "Expected function at " << application->line_number << ":" << application->char_number << '\n';
+            std::cout << "Applying non-function at  " << application->line_number << ":" << application->char_number << '\n';
             exit(1);
         }
 
+        int argListStart = contextStack.size();
         if (application->listexpr_) application->listexpr_->accept(this);
 
+        resolveIdents(argListStart);
+
+        std::vector <StoredType> argStack = {};
+        for (int i = argListStart; i < contextStack.size(); i++) {
+            argStack.push_back(contextStack[i]);
+        }
+
+        if (argStack != function.argsTypes) {
+            std::cout << "Argument type mismatch at application at "
+                      << application->line_number << ":"
+                      << application->char_number << '\n';
+            exit(1);
+        }
+
+        current_scope--;
+        purgeIdents();
+        while (contextStack.size() > startSize) {
+            contextStack.pop_back();
+        }
+
+        for (int i = 0; i < function.returnTypes.size(); i++) {
+            contextStack.push_back(function.returnTypes[i]);
+        }
     }
 
     void MyVisitor::visitConsList(ConsList *cons_list)
