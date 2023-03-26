@@ -3,9 +3,8 @@
 //
 namespace Stella {
     enum VisitableTag {
-        tagConstTrue,
-        tagConstFalse,
-        tagConstInt,
-        tagTypeNat
+        tagTypeBool,
+        tagTypeNat,
+        tagTypeFunction
     };
 }

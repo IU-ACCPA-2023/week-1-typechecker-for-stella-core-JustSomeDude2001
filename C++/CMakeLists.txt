@@ -14,6 +14,8 @@ set (Stella_Syntax
   Stella/Bison.H
   Stella/Lexer.C
         Enums.h
+        StoredType.h
+        StoredType.cpp
         MyVisitor.cpp
         MyVisitor.h
 )

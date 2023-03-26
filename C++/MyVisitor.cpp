@@ -4,15 +4,10 @@
 
 #include "MyVisitor.h"
 #include <iostream>
-#include <vector>
+#include "Stella/Printer.H"
 
 namespace Stella
 {
-
-    void printVisitableInfo(Visitable *v, std::string name = "UNSPECIFIED") {
-        std::cout << "Visited " << name << '\n';
-    }
-
     void MyVisitor::visitProgram(Program *t) {} //abstract class
     void MyVisitor::visitLanguageDecl(LanguageDecl *t) {} //abstract class
     void MyVisitor::visitExtension(Extension *t) {} //abstract class
@@ -51,6 +46,7 @@ namespace Stella
         /* Code For LanguageCore Goes Here */
 
         std::cout << "Visiting language core...\n";
+
     }
 
     void MyVisitor::visitAnExtension(AnExtension *an_extension)
@@ -72,9 +68,6 @@ namespace Stella
 
         if (decl_fun->listparamdecl_) decl_fun->listparamdecl_->accept(this);
         if (decl_fun->returntype_) decl_fun->returntype_->accept(this);
-
-        std::cout << "Function " << decl_fun->stellaident_ << " return type: " << contextStack.back().second << '\n';
-
         if (decl_fun->throwtype_) decl_fun->throwtype_->accept(this);
         if (decl_fun->listdecl_) decl_fun->listdecl_->accept(this);
         if (decl_fun->expr_) decl_fun->expr_->accept(this);
@@ -323,6 +316,7 @@ namespace Stella
     void MyVisitor::visitApplication(Application *application)
     {
         /* Code For Application Goes Here */
+        std::cout << "Visiting Applicaton at " << application->line_number << ":" << application->char_number << '\n';
 
         if (application->expr_) application->expr_->accept(this);
         if (application->listexpr_) application->listexpr_->accept(this);
@@ -367,16 +361,6 @@ namespace Stella
         /* Code For Succ Goes Here */
 
         if (succ->expr_) succ->expr_->accept(this);
-
-        VisitableTag lastTag = contextStack.back().second;
-
-        if (lastTag != VisitableTag::tagConstInt) {
-            std::cout << "Expected Nat at " << succ->line_number << ":" << succ->char_number << '\n';
-            exit(1);
-        } else {
-            contextStack.pop_back();
-            contextStack.push_back(std::make_pair(current_scope, tagConstInt));
-        }
     }
 
     void MyVisitor::visitLogicNot(LogicNot *logic_not)
@@ -464,16 +448,12 @@ namespace Stella
         /* Code For ConstTrue Goes Here */
 
         std::cout << "Visiting ConstTrue at " << const_true->line_number << ":" << const_true->char_number << '\n';
-
-        contextStack.push_back(std::make_pair(current_scope, tagConstTrue));
     }
 
     void MyVisitor::visitConstFalse(ConstFalse *const_false)
     {
         /* Code For ConstFalse Goes Here */
-        std::cout << "Visiting ConsFalse at " << const_false->line_number << ":" << const_false->char_number << '\n';
-
-        contextStack.push_back(std::make_pair(current_scope, tagConstFalse));
+        std::cout << "Visiting ConstFalse at " << const_false->line_number << ":" << const_false->char_number << '\n';
     }
 
     void MyVisitor::visitConstInt(ConstInt *const_int)
@@ -716,8 +696,6 @@ namespace Stella
         /* Code For TypeNat Goes Here */
 
         std::cout << "Visiting TypeNat at " << type_nat->line_number << ":" << type_nat->char_number << '\n';
-
-        contextStack.push_back(std::make_pair(current_scope, tagTypeNat));
     }
 
     void MyVisitor::visitTypeUnit(TypeUnit *type_unit)
@@ -892,10 +870,6 @@ namespace Stella
     void MyVisitor::visitInteger(Integer x)
     {
         /* Code for Integer Goes Here */
-
-        std::cout << "Adding Integer to context stack...\n";
-
-        contextStack.push_back(std::make_pair(current_scope, tagConstInt));
     }
 
     void MyVisitor::visitChar(Char x)

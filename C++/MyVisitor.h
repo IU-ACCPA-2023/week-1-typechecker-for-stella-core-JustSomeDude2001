@@ -6,7 +6,8 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "Enums.h"
+#include <stack>
+#include "StoredType.h"
 
 namespace Stella {
     class MyVisitor : public Visitor {
@@ -14,8 +15,13 @@ namespace Stella {
 
         int current_scope = 0;
 
-        //std::map<std::pair<int, Ident>, Type> variables;
-        std::vector <std::pair<int, VisitableTag> > contextStack = {};
+        // Idea is simple: have a stack of types with their identifiers if required.
+        std::vector <std::pair<std::string, StoredType> > contextStack = {};
+
+        // Simple map of identifiers with their types matched.
+        // Since shadowing and scopes are a thing, we will look at top type.
+        std::map <std::string, std::vector<StoredType> > identMap;
+        // TO-DO purge map of higher scope items
 
         void visitProgram(Program *p);
 
