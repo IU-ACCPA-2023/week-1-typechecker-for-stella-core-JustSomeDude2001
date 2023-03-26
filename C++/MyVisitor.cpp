@@ -39,6 +39,10 @@ namespace Stella
         if (a_program->languagedecl_) a_program->languagedecl_->accept(this);
         if (a_program->listextension_) a_program->listextension_->accept(this);
         if (a_program->listdecl_) a_program->listdecl_->accept(this);
+
+        for (auto it = identMap.begin(); it != identMap.end(); it++) {
+            std::cout << it -> first << '\n';
+        }
     }
 
     void MyVisitor::visitLanguageCore(LanguageCore *language_core)
@@ -73,6 +77,8 @@ namespace Stella
         if (decl_fun->expr_) decl_fun->expr_->accept(this);
 
         current_scope--;
+
+        purgeIdents();
     }
 
     void MyVisitor::visitDeclTypeAlias(DeclTypeAlias *decl_type_alias)
@@ -103,9 +109,28 @@ namespace Stella
     {
         /* Code For AParamDecl Goes Here */
 
-        visitStellaIdent(a_param_decl->stellaident_);
-        if (a_param_decl->type_) a_param_decl->type_->accept(this);
+        std::cout << "Visiting a Param Decl at " << a_param_decl->line_number << ":" << a_param_decl->char_number << '\n';
 
+        visitStellaIdent(a_param_decl->stellaident_);
+        int index_ident = contextStack.size() - 1;
+
+        if (a_param_decl->type_) {
+            a_param_decl->type_->accept(this);
+
+            StoredType result = contextStack.back();
+            result.ident = contextStack[index_ident].ident;
+
+            identMap[result.ident].push_back(result);
+
+            contextStack.pop_back();
+            contextStack.pop_back();
+
+            contextStack.push_back(result);
+            std::cout << "Ident tag: " << result.tag << '\n';
+        } else {
+            std::cout << "Typeless param decl? " << a_param_decl->line_number << ":" << a_param_decl->char_number << '\n';
+            exit(1);
+        }
     }
 
     void MyVisitor::visitNoReturnType(NoReturnType *no_return_type)
@@ -319,6 +344,15 @@ namespace Stella
         std::cout << "Visiting Applicaton at " << application->line_number << ":" << application->char_number << '\n';
 
         if (application->expr_) application->expr_->accept(this);
+
+        resolveIdents(contextStack.size() - 1);
+        StoredType function = contextStack.back();
+
+        if (function.tag != VisitableTag::tagTypeFunction) {
+            std::cout << "Expected function at " << application->line_number << ":" << application->char_number << '\n';
+            exit(1);
+        }
+
         if (application->listexpr_) application->listexpr_->accept(this);
 
     }
@@ -362,7 +396,9 @@ namespace Stella
 
         if (succ->expr_) succ->expr_->accept(this);
 
-        if (contextStack.back().second != ST_NAT) {
+        resolveIdents(contextStack.size() - 1);
+
+        if (contextStack.back() != ST_NAT) {
             std::cout << "Expected Nat at " << succ->line_number << ":" << succ->char_number << '\n';
             exit(1);
         }
@@ -457,7 +493,7 @@ namespace Stella
         StoredType result = ST_BOOL;
         result.scope = current_scope;
 
-        contextStack.push_back(std::make_pair("", result));
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitConstFalse(ConstFalse *const_false)
@@ -468,7 +504,7 @@ namespace Stella
         StoredType result = ST_BOOL;
         result.scope = current_scope;
 
-        contextStack.push_back(std::make_pair("", result));
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitConstInt(ConstInt *const_int)
@@ -703,7 +739,12 @@ namespace Stella
     void MyVisitor::visitTypeBool(TypeBool *type_bool)
     {
         /* Code For TypeBool Goes Here */
-        
+        std::cout << "Visiting TypeBool at " << type_bool->line_number << ":" << type_bool->char_number << '\n';
+
+        StoredType result = ST_BOOL;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTypeNat(TypeNat *type_nat)
@@ -711,6 +752,11 @@ namespace Stella
         /* Code For TypeNat Goes Here */
 
         std::cout << "Visiting TypeNat at " << type_nat->line_number << ":" << type_nat->char_number << '\n';
+
+        StoredType result = ST_NAT;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTypeUnit(TypeUnit *type_unit)
@@ -889,7 +935,7 @@ namespace Stella
         StoredType result = ST_NAT;
         result.scope = current_scope;
 
-        contextStack.push_back(std::make_pair("", result));
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitChar(Char x)
@@ -911,13 +957,18 @@ namespace Stella
     void MyVisitor::visitIdent(Ident x)
     {
         /* Code for Ident Goes Here */
-        std::cout << "Visiting Ident " << x << '\n';
     }
 
     void MyVisitor::visitStellaIdent(StellaIdent x)
     {
         /* Code for StellaIdent Goes Here */
         std::cout << "Visiting StellaIdent " << x << '\n';
+
+        StoredType result = ST_IDENT;
+        result.scope = current_scope;
+        result.ident = x;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitExtensionName(ExtensionName x)

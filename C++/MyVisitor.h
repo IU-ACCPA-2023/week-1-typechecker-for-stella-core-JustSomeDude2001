@@ -9,6 +9,7 @@
 #include <stack>
 #include "StoredType.h"
 #include "Consts.h"
+#include "iostream"
 
 namespace Stella {
     class MyVisitor : public Visitor {
@@ -17,12 +18,11 @@ namespace Stella {
         int current_scope = 0;
 
         // Idea is simple: have a stack of types with their identifiers if required.
-        std::vector <std::pair<std::string, StoredType> > contextStack = {};
+        std::vector <StoredType> contextStack = {};
 
         // Simple map of identifiers with their types matched.
         // Since shadowing and scopes are a thing, we will look at top type.
         std::map <std::string, std::vector<StoredType> > identMap;
-        // TO-DO purge map of higher scope items
 
         MyVisitor() {
             // Add in some built-in functions.
@@ -31,6 +31,25 @@ namespace Stella {
                                                   -1,
                                                   {ST_NAT},
                                                   {ST_NAT}));
+        }
+
+        void resolveIdents(int start = 0) {
+            for (int i = start; i < contextStack.size(); i++) {
+                if (contextStack[i].tag == VisitableTag::tagTypeIdent) {
+                    StoredType result = identMap[contextStack[i].ident].back();
+                    result.ident = contextStack[i].ident;
+                    contextStack[i] = result;
+                    std::cout << "Resolved ident " << result.ident << '\n';
+                }
+            }
+        }
+
+        void purgeIdents() {
+            for (auto it = identMap.begin(); it != identMap.end(); it++) {
+                while (!it->second.empty() && it->second.back().scope > current_scope) {
+                    it->second.pop_back();
+                }
+            }
         }
 
         void visitProgram(Program *p);

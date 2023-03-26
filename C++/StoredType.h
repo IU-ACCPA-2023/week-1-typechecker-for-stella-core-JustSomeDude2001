@@ -7,6 +7,7 @@
 
 #include "Enums.h"
 #include <vector>
+#include <string>
 
 namespace Stella {
 
@@ -15,6 +16,7 @@ namespace Stella {
         VisitableTag tag;
 
         int scope;
+        std::string ident = "";
 
         std::vector<StoredType> argsTypes = {};
         std::vector<StoredType> returnTypes = {};

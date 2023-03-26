@@ -5,6 +5,7 @@ namespace Stella {
     enum VisitableTag {
         tagTypeBool,
         tagTypeNat,
-        tagTypeFunction
+        tagTypeFunction,
+        tagTypeIdent
     };
 }
