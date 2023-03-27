@@ -4,7 +4,8 @@
 
 /**
  * MAKE SURE TO LEAVE PROPER CREDIT IF YOU TAKE INSPIRATION FROM THIS CODE
- * Yaroslav Kim SD20-01
+ * Yaroslav Kim SD20-01.
+ * You can contact me via telegram @JustSomeDude22
  */
 
 /**
