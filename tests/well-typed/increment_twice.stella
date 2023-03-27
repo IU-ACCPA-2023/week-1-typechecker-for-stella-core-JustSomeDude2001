@@ -5,7 +5,11 @@ fn increment_twice(n : Nat) -> Nat {
   return succ(succ(n));
 }
 
+fn returner() -> (fn(Nat) -> Nat) {
+    return increment_twice;
+}
+
 fn main(n : Nat) -> Nat {
-  return increment_twice(n);
+  return returner()(n);
 }
 

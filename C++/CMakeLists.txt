@@ -13,6 +13,12 @@ set (Stella_Syntax
   Stella/Buffer.C
   Stella/Bison.H
   Stella/Lexer.C
+        Enums.h
+        StoredType.h
+        StoredType.cpp
+        Consts.h
+        MyVisitor.cpp
+        MyVisitor.h
 )
 
 set (SRCS

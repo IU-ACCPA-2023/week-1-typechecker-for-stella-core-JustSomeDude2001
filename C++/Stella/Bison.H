@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.8.2.  */
+/* A Bison parser, made by GNU Bison 3.7.6.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -194,8 +194,6 @@ struct YYLTYPE
 
 
 
-
 int Stellaparse (yyscan_t scanner, YYSTYPE *result);
-
 
 #endif /* !YY_STELLA_BISON_H_INCLUDED  */
