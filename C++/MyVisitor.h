@@ -15,24 +15,34 @@ namespace Stella {
     class MyVisitor : public Visitor {
     public:
 
+        // Tracks scope during execution.
         int current_scope = 0;
 
-        // Idea is simple: have a stack of types with their identifiers if required.
+        // Visitor must have memory of what it gathered to resolve declarations, function calls, etc.
         std::vector <StoredType> contextStack = {};
 
         // Simple map of identifiers with their types matched.
-        // Since shadowing and scopes are a thing, we will look at top type.
+        // Since shadowing and scopes are a thing, we will look at top type always.
         std::map <std::string, std::vector<StoredType> > identMap;
 
         MyVisitor() {
             // Add in some built-in functions.
 
+            /*
             identMap["succ"].push_back(StoredType(VisitableTag::tagTypeFunction,
                                                   -1,
                                                   {ST_NAT},
                                                   {ST_NAT}));
+            */
+            // TO-DO - most built-in functions do not require specific visit functions.
+            // They can be handled as simple applications. Figue that out in the future.
         }
 
+        /**
+         * Replaces idents on top of @contextStack starting from @start with their corresponding StoredType.
+         *
+         * @param start
+         */
         void resolveIdents(int start = 0) {
             for (int i = start; i < contextStack.size(); i++) {
                 if (contextStack[i].tag == VisitableTag::tagTypeIdent) {
@@ -48,6 +58,9 @@ namespace Stella {
             }
         }
 
+        /**
+         * Purges(removes) idents that are of scope higher than @current_scope from @identMap
+         */
         void purgeIdents() {
             for (auto it = identMap.begin(); it != identMap.end(); it++) {
                 while (!it->second.empty() && it->second.back().scope > current_scope) {
@@ -56,15 +69,28 @@ namespace Stella {
             }
         }
 
+
+        /**
+         * Increases scope safely
+         */
         void increaseScope() {
             current_scope++;
         }
 
+        /**
+         * Decreases scope safely
+         */
         void decreaseScope() {
             current_scope--;
             purgeIdents();
         }
 
+        /**
+         * Safely downsizes @contextStack to @targetSize.
+         * Call it to remove items that have been resolved to a singular item.
+         *
+         * @param targetSize
+         */
         void cutContextStack(int targetSize) {
             if(targetSize < contextStack.size()) {
                 contextStack.resize(targetSize);

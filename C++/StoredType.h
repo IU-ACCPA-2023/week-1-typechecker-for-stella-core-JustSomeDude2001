@@ -10,15 +10,23 @@
 #include <string>
 #include <iostream>
 
+
 namespace Stella {
 
+    /**
+     * This class allows storage of any object we might encounter while traversing AST.
+     */
     class StoredType {
     public:
+        // tag determines what kind of object is it - a specific variable, function, or unresolved ident.
         VisitableTag tag;
 
         int scope;
+
+        // ident is only relevant for when tag is tagTypeIdent.
         std::string ident = "";
 
+        // argsTypes and returnTypes are only present in functions.
         std::vector<StoredType> argsTypes = {};
         std::vector<StoredType> returnTypes = {};
 
@@ -37,6 +45,17 @@ namespace Stella {
             returnTypes = _returnTypes;
         }
 
+        /**
+         * Comparator for StoredType is recursive to allow for handling any level of
+         * function nesting in arguments.
+         *
+         * Note that comparator only compares tags and tags of argsTypes and returnTypes.
+         * It will believe that different items of same type are identical.
+         * Intended to be used for checking for argument or parameter mismatches.
+         *
+         * @param b
+         * @return
+         */
         bool operator==(const StoredType& b) {
             if (tag != b.tag ||
                 argsTypes.size() != b.argsTypes.size() ||
@@ -72,6 +91,9 @@ namespace Stella {
             return *this;
         }
 
+        /**
+         * Debug output method.
+         */
         void print() {
             std::cout << "\n===============\n";
             std::cout << "Ident:      " << ident << '\n';

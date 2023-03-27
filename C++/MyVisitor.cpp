@@ -2,6 +2,26 @@
 // Created by justsomedude on 23.03.23.
 //
 
+/**
+ * MAKE SURE TO LEAVE PROPER CREDIT IF YOU TAKE INSPIRATION FROM THIS CODE
+ * Yaroslav Kim SD20-01
+ */
+
+/**
+ * General approach for constructing types is the following:
+ *
+ * Visitor has memory in the form of contextStack, and general tree of function calls.
+ * Components of a type are gathered from control points in the contextStack once the stack is populated with the
+ * items from a specific visitList, or visitExpr.
+ *
+ * For example in visitDeclFun we have several control points from which components of a function are gathered.
+ * A function is formed from the resulting vectors of StoredType objects and added to map of identifiers.
+ *
+ * Expressions can be idents, so they are resolved using resolveIdents method.
+ *
+ * Same logic is seen throughout the code.
+ */
+
 #include "MyVisitor.h"
 #include <iostream>
 #include "Stella/Printer.H"
