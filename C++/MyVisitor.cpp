@@ -87,12 +87,12 @@ namespace Stella
 
         int paramsStart = contextStack.size();
         if (decl_fun->listparamdecl_) decl_fun->listparamdecl_->accept(this);
-        resolveIdents(paramsStart);
+        //resolveIdents(paramsStart);
         std::vector <StoredType> params(contextStack.begin() + paramsStart, contextStack.end());
 
         int returnTypesStart = contextStack.size();
         if (decl_fun->returntype_) decl_fun->returntype_->accept(this);
-        resolveIdents(returnTypesStart);
+        //resolveIdents(returnTypesStart);
         std::vector <StoredType> returnTypes(contextStack.begin() + returnTypesStart, contextStack.end());
 
         if (decl_fun->throwtype_) decl_fun->throwtype_->accept(this);
@@ -337,7 +337,7 @@ namespace Stella
 
         int startSize = contextStack.size();
         if (abstraction->listparamdecl_) abstraction->listparamdecl_->accept(this);
-        resolveIdents(startSize);
+        //resolveIdents(startSize);
         std::vector <StoredType> argsTypes(contextStack.begin() + startSize, contextStack.end());
 
         int returnTypesStart = contextStack.size();
@@ -443,7 +443,6 @@ namespace Stella
 
         int startSize = contextStack.size();
         if (application->expr_) application->expr_->accept(this);
-
         resolveIdents(contextStack.size() - 1);
         StoredType function = contextStack.back();
 
@@ -513,7 +512,6 @@ namespace Stella
         /* Code For Succ Goes Here */
 
         if (succ->expr_) succ->expr_->accept(this);
-
         resolveIdents(contextStack.size() - 1);
 
         if (contextStack.back() != ST_NAT) {
@@ -838,12 +836,12 @@ namespace Stella
 
         int startSize = contextStack.size();
         if (type_fun->listtype_) type_fun->listtype_->accept(this);
-        resolveIdents(startSize);
+        //resolveIdents(startSize);
         std::vector<StoredType> argsTypes(contextStack.begin() + startSize, contextStack.end());
 
         int returnTypesStart = contextStack.size();
         if (type_fun->type_) type_fun->type_->accept(this);
-        resolveIdents(returnTypesStart);
+        //resolveIdents(returnTypesStart);
         std::vector<StoredType> returnTypes(contextStack.begin() + returnTypesStart, contextStack.end());
 
         StoredType result = ST_FUN;
