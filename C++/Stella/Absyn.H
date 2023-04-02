@@ -33,7 +33,7 @@ class Annotation;
 class ParamDecl;
 class ReturnType;
 class ThrowType;
-class Expr;
+class Type;
 class MatchCase;
 class OptionalTyping;
 class PatternData;
@@ -41,7 +41,8 @@ class ExprData;
 class Pattern;
 class LabelledPattern;
 class Binding;
-class Type;
+class Expr;
+class PatternBinding;
 class VariantFieldType;
 class RecordFieldType;
 class Typing;
@@ -57,8 +58,6 @@ class NoReturnType;
 class SomeReturnType;
 class NoThrowType;
 class SomeThrowType;
-class If;
-class Let;
 class AMatchCase;
 class NoTyping;
 class SomeTyping;
@@ -67,17 +66,25 @@ class SomePatternData;
 class NoExprData;
 class SomeExprData;
 class PatternVariant;
+class PatternInl;
+class PatternInr;
 class PatternTuple;
 class PatternRecord;
 class PatternList;
 class PatternCons;
 class PatternFalse;
 class PatternTrue;
+class PatternUnit;
 class PatternInt;
 class PatternSucc;
 class PatternVar;
 class ALabelledPattern;
 class ABinding;
+class Sequence;
+class If;
+class Let;
+class LetRec;
+class APatternBinding;
 class LessThan;
 class LessThanOrEqual;
 class GreaterThan;
@@ -86,20 +93,26 @@ class Equal;
 class NotEqual;
 class TypeAsc;
 class Abstraction;
-class Tuple;
-class Record;
 class Variant;
 class Match;
 class List;
 class Add;
+class Subtract;
 class LogicOr;
 class Multiply;
+class Divide;
 class LogicAnd;
 class Application;
+class DotRecord;
+class DotTuple;
+class Tuple;
+class Record;
 class ConsList;
 class Head;
 class IsEmpty;
 class Tail;
+class Inl;
+class Inr;
 class Succ;
 class LogicNot;
 class Pred;
@@ -108,10 +121,9 @@ class Fix;
 class NatRec;
 class Fold;
 class Unfold;
-class DotRecord;
-class DotTuple;
 class ConstTrue;
 class ConstFalse;
+class ConstUnit;
 class ConstInt;
 class Var;
 class TypeFun;
@@ -135,12 +147,13 @@ class ListDecl;
 class ListLocalDecl;
 class ListAnnotation;
 class ListParamDecl;
-class ListExpr;
+class ListType;
 class ListMatchCase;
 class ListPattern;
 class ListLabelledPattern;
 class ListBinding;
-class ListType;
+class ListExpr;
+class ListPatternBinding;
 class ListVariantFieldType;
 class ListRecordFieldType;
 
@@ -159,7 +172,7 @@ public:
   virtual void visitParamDecl(ParamDecl *p) = 0;
   virtual void visitReturnType(ReturnType *p) = 0;
   virtual void visitThrowType(ThrowType *p) = 0;
-  virtual void visitExpr(Expr *p) = 0;
+  virtual void visitType(Type *p) = 0;
   virtual void visitMatchCase(MatchCase *p) = 0;
   virtual void visitOptionalTyping(OptionalTyping *p) = 0;
   virtual void visitPatternData(PatternData *p) = 0;
@@ -167,7 +180,8 @@ public:
   virtual void visitPattern(Pattern *p) = 0;
   virtual void visitLabelledPattern(LabelledPattern *p) = 0;
   virtual void visitBinding(Binding *p) = 0;
-  virtual void visitType(Type *p) = 0;
+  virtual void visitExpr(Expr *p) = 0;
+  virtual void visitPatternBinding(PatternBinding *p) = 0;
   virtual void visitVariantFieldType(VariantFieldType *p) = 0;
   virtual void visitRecordFieldType(RecordFieldType *p) = 0;
   virtual void visitTyping(Typing *p) = 0;
@@ -183,8 +197,6 @@ public:
   virtual void visitSomeReturnType(SomeReturnType *p) = 0;
   virtual void visitNoThrowType(NoThrowType *p) = 0;
   virtual void visitSomeThrowType(SomeThrowType *p) = 0;
-  virtual void visitIf(If *p) = 0;
-  virtual void visitLet(Let *p) = 0;
   virtual void visitAMatchCase(AMatchCase *p) = 0;
   virtual void visitNoTyping(NoTyping *p) = 0;
   virtual void visitSomeTyping(SomeTyping *p) = 0;
@@ -193,17 +205,25 @@ public:
   virtual void visitNoExprData(NoExprData *p) = 0;
   virtual void visitSomeExprData(SomeExprData *p) = 0;
   virtual void visitPatternVariant(PatternVariant *p) = 0;
+  virtual void visitPatternInl(PatternInl *p) = 0;
+  virtual void visitPatternInr(PatternInr *p) = 0;
   virtual void visitPatternTuple(PatternTuple *p) = 0;
   virtual void visitPatternRecord(PatternRecord *p) = 0;
   virtual void visitPatternList(PatternList *p) = 0;
   virtual void visitPatternCons(PatternCons *p) = 0;
   virtual void visitPatternFalse(PatternFalse *p) = 0;
   virtual void visitPatternTrue(PatternTrue *p) = 0;
+  virtual void visitPatternUnit(PatternUnit *p) = 0;
   virtual void visitPatternInt(PatternInt *p) = 0;
   virtual void visitPatternSucc(PatternSucc *p) = 0;
   virtual void visitPatternVar(PatternVar *p) = 0;
   virtual void visitALabelledPattern(ALabelledPattern *p) = 0;
   virtual void visitABinding(ABinding *p) = 0;
+  virtual void visitSequence(Sequence *p) = 0;
+  virtual void visitIf(If *p) = 0;
+  virtual void visitLet(Let *p) = 0;
+  virtual void visitLetRec(LetRec *p) = 0;
+  virtual void visitAPatternBinding(APatternBinding *p) = 0;
   virtual void visitLessThan(LessThan *p) = 0;
   virtual void visitLessThanOrEqual(LessThanOrEqual *p) = 0;
   virtual void visitGreaterThan(GreaterThan *p) = 0;
@@ -212,20 +232,26 @@ public:
   virtual void visitNotEqual(NotEqual *p) = 0;
   virtual void visitTypeAsc(TypeAsc *p) = 0;
   virtual void visitAbstraction(Abstraction *p) = 0;
-  virtual void visitTuple(Tuple *p) = 0;
-  virtual void visitRecord(Record *p) = 0;
   virtual void visitVariant(Variant *p) = 0;
   virtual void visitMatch(Match *p) = 0;
   virtual void visitList(List *p) = 0;
   virtual void visitAdd(Add *p) = 0;
+  virtual void visitSubtract(Subtract *p) = 0;
   virtual void visitLogicOr(LogicOr *p) = 0;
   virtual void visitMultiply(Multiply *p) = 0;
+  virtual void visitDivide(Divide *p) = 0;
   virtual void visitLogicAnd(LogicAnd *p) = 0;
   virtual void visitApplication(Application *p) = 0;
+  virtual void visitDotRecord(DotRecord *p) = 0;
+  virtual void visitDotTuple(DotTuple *p) = 0;
+  virtual void visitTuple(Tuple *p) = 0;
+  virtual void visitRecord(Record *p) = 0;
   virtual void visitConsList(ConsList *p) = 0;
   virtual void visitHead(Head *p) = 0;
   virtual void visitIsEmpty(IsEmpty *p) = 0;
   virtual void visitTail(Tail *p) = 0;
+  virtual void visitInl(Inl *p) = 0;
+  virtual void visitInr(Inr *p) = 0;
   virtual void visitSucc(Succ *p) = 0;
   virtual void visitLogicNot(LogicNot *p) = 0;
   virtual void visitPred(Pred *p) = 0;
@@ -234,10 +260,9 @@ public:
   virtual void visitNatRec(NatRec *p) = 0;
   virtual void visitFold(Fold *p) = 0;
   virtual void visitUnfold(Unfold *p) = 0;
-  virtual void visitDotRecord(DotRecord *p) = 0;
-  virtual void visitDotTuple(DotTuple *p) = 0;
   virtual void visitConstTrue(ConstTrue *p) = 0;
   virtual void visitConstFalse(ConstFalse *p) = 0;
+  virtual void visitConstUnit(ConstUnit *p) = 0;
   virtual void visitConstInt(ConstInt *p) = 0;
   virtual void visitVar(Var *p) = 0;
   virtual void visitTypeFun(TypeFun *p) = 0;
@@ -261,12 +286,13 @@ public:
   virtual void visitListLocalDecl(ListLocalDecl *p) = 0;
   virtual void visitListAnnotation(ListAnnotation *p) = 0;
   virtual void visitListParamDecl(ListParamDecl *p) = 0;
-  virtual void visitListExpr(ListExpr *p) = 0;
+  virtual void visitListType(ListType *p) = 0;
   virtual void visitListMatchCase(ListMatchCase *p) = 0;
   virtual void visitListPattern(ListPattern *p) = 0;
   virtual void visitListLabelledPattern(ListLabelledPattern *p) = 0;
   virtual void visitListBinding(ListBinding *p) = 0;
-  virtual void visitListType(ListType *p) = 0;
+  virtual void visitListExpr(ListExpr *p) = 0;
+  virtual void visitListPatternBinding(ListPatternBinding *p) = 0;
   virtual void visitListVariantFieldType(ListVariantFieldType *p) = 0;
   virtual void visitListRecordFieldType(ListRecordFieldType *p) = 0;
 
@@ -355,10 +381,10 @@ public:
   int line_number, char_number;
 };
 
-class Expr : public Visitable
+class Type : public Visitable
 {
 public:
-  virtual Expr *clone() const = 0;
+  virtual Type *clone() const = 0;
   int line_number, char_number;
 };
 
@@ -411,10 +437,17 @@ public:
   int line_number, char_number;
 };
 
-class Type : public Visitable
+class Expr : public Visitable
 {
 public:
-  virtual Type *clone() const = 0;
+  virtual Expr *clone() const = 0;
+  int line_number, char_number;
+};
+
+class PatternBinding : public Visitable
+{
+public:
+  virtual PatternBinding *clone() const = 0;
   int line_number, char_number;
 };
 
@@ -615,828 +648,6 @@ public:
   void swap(SomeThrowType &);
 };
 
-class If : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-  Expr *expr_3;
-
-  If(const If &);
-  If &operator=(const If &);
-  If(Expr *p1, Expr *p2, Expr *p3);
-  ~If();
-  virtual void accept(Visitor *v);
-  virtual If *clone() const;
-  void swap(If &);
-};
-
-class Let : public Expr
-{
-public:
-  StellaIdent stellaident_;
-  Expr *expr_1;
-  Expr *expr_2;
-
-  Let(const Let &);
-  Let &operator=(const Let &);
-  Let(StellaIdent p1, Expr *p2, Expr *p3);
-  ~Let();
-  virtual void accept(Visitor *v);
-  virtual Let *clone() const;
-  void swap(Let &);
-};
-
-class LessThan : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-
-  LessThan(const LessThan &);
-  LessThan &operator=(const LessThan &);
-  LessThan(Expr *p1, Expr *p2);
-  ~LessThan();
-  virtual void accept(Visitor *v);
-  virtual LessThan *clone() const;
-  void swap(LessThan &);
-};
-
-class LessThanOrEqual : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-
-  LessThanOrEqual(const LessThanOrEqual &);
-  LessThanOrEqual &operator=(const LessThanOrEqual &);
-  LessThanOrEqual(Expr *p1, Expr *p2);
-  ~LessThanOrEqual();
-  virtual void accept(Visitor *v);
-  virtual LessThanOrEqual *clone() const;
-  void swap(LessThanOrEqual &);
-};
-
-class GreaterThan : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-
-  GreaterThan(const GreaterThan &);
-  GreaterThan &operator=(const GreaterThan &);
-  GreaterThan(Expr *p1, Expr *p2);
-  ~GreaterThan();
-  virtual void accept(Visitor *v);
-  virtual GreaterThan *clone() const;
-  void swap(GreaterThan &);
-};
-
-class GreaterThanOrEqual : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-
-  GreaterThanOrEqual(const GreaterThanOrEqual &);
-  GreaterThanOrEqual &operator=(const GreaterThanOrEqual &);
-  GreaterThanOrEqual(Expr *p1, Expr *p2);
-  ~GreaterThanOrEqual();
-  virtual void accept(Visitor *v);
-  virtual GreaterThanOrEqual *clone() const;
-  void swap(GreaterThanOrEqual &);
-};
-
-class Equal : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-
-  Equal(const Equal &);
-  Equal &operator=(const Equal &);
-  Equal(Expr *p1, Expr *p2);
-  ~Equal();
-  virtual void accept(Visitor *v);
-  virtual Equal *clone() const;
-  void swap(Equal &);
-};
-
-class NotEqual : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-
-  NotEqual(const NotEqual &);
-  NotEqual &operator=(const NotEqual &);
-  NotEqual(Expr *p1, Expr *p2);
-  ~NotEqual();
-  virtual void accept(Visitor *v);
-  virtual NotEqual *clone() const;
-  void swap(NotEqual &);
-};
-
-class TypeAsc : public Expr
-{
-public:
-  Expr *expr_;
-  Type *type_;
-
-  TypeAsc(const TypeAsc &);
-  TypeAsc &operator=(const TypeAsc &);
-  TypeAsc(Expr *p1, Type *p2);
-  ~TypeAsc();
-  virtual void accept(Visitor *v);
-  virtual TypeAsc *clone() const;
-  void swap(TypeAsc &);
-};
-
-class Abstraction : public Expr
-{
-public:
-  ListParamDecl *listparamdecl_;
-  Expr *expr_;
-
-  Abstraction(const Abstraction &);
-  Abstraction &operator=(const Abstraction &);
-  Abstraction(ListParamDecl *p1, Expr *p2);
-  ~Abstraction();
-  virtual void accept(Visitor *v);
-  virtual Abstraction *clone() const;
-  void swap(Abstraction &);
-};
-
-class Tuple : public Expr
-{
-public:
-  ListExpr *listexpr_;
-
-  Tuple(const Tuple &);
-  Tuple &operator=(const Tuple &);
-  Tuple(ListExpr *p1);
-  ~Tuple();
-  virtual void accept(Visitor *v);
-  virtual Tuple *clone() const;
-  void swap(Tuple &);
-};
-
-class Record : public Expr
-{
-public:
-  ListBinding *listbinding_;
-
-  Record(const Record &);
-  Record &operator=(const Record &);
-  Record(ListBinding *p1);
-  ~Record();
-  virtual void accept(Visitor *v);
-  virtual Record *clone() const;
-  void swap(Record &);
-};
-
-class Variant : public Expr
-{
-public:
-  StellaIdent stellaident_;
-  ExprData *exprdata_;
-
-  Variant(const Variant &);
-  Variant &operator=(const Variant &);
-  Variant(StellaIdent p1, ExprData *p2);
-  ~Variant();
-  virtual void accept(Visitor *v);
-  virtual Variant *clone() const;
-  void swap(Variant &);
-};
-
-class Match : public Expr
-{
-public:
-  Expr *expr_;
-  ListMatchCase *listmatchcase_;
-
-  Match(const Match &);
-  Match &operator=(const Match &);
-  Match(Expr *p1, ListMatchCase *p2);
-  ~Match();
-  virtual void accept(Visitor *v);
-  virtual Match *clone() const;
-  void swap(Match &);
-};
-
-class List : public Expr
-{
-public:
-  ListExpr *listexpr_;
-
-  List(const List &);
-  List &operator=(const List &);
-  List(ListExpr *p1);
-  ~List();
-  virtual void accept(Visitor *v);
-  virtual List *clone() const;
-  void swap(List &);
-};
-
-class Add : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-
-  Add(const Add &);
-  Add &operator=(const Add &);
-  Add(Expr *p1, Expr *p2);
-  ~Add();
-  virtual void accept(Visitor *v);
-  virtual Add *clone() const;
-  void swap(Add &);
-};
-
-class LogicOr : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-
-  LogicOr(const LogicOr &);
-  LogicOr &operator=(const LogicOr &);
-  LogicOr(Expr *p1, Expr *p2);
-  ~LogicOr();
-  virtual void accept(Visitor *v);
-  virtual LogicOr *clone() const;
-  void swap(LogicOr &);
-};
-
-class Multiply : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-
-  Multiply(const Multiply &);
-  Multiply &operator=(const Multiply &);
-  Multiply(Expr *p1, Expr *p2);
-  ~Multiply();
-  virtual void accept(Visitor *v);
-  virtual Multiply *clone() const;
-  void swap(Multiply &);
-};
-
-class LogicAnd : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-
-  LogicAnd(const LogicAnd &);
-  LogicAnd &operator=(const LogicAnd &);
-  LogicAnd(Expr *p1, Expr *p2);
-  ~LogicAnd();
-  virtual void accept(Visitor *v);
-  virtual LogicAnd *clone() const;
-  void swap(LogicAnd &);
-};
-
-class Application : public Expr
-{
-public:
-  Expr *expr_;
-  ListExpr *listexpr_;
-
-  Application(const Application &);
-  Application &operator=(const Application &);
-  Application(Expr *p1, ListExpr *p2);
-  ~Application();
-  virtual void accept(Visitor *v);
-  virtual Application *clone() const;
-  void swap(Application &);
-};
-
-class ConsList : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-
-  ConsList(const ConsList &);
-  ConsList &operator=(const ConsList &);
-  ConsList(Expr *p1, Expr *p2);
-  ~ConsList();
-  virtual void accept(Visitor *v);
-  virtual ConsList *clone() const;
-  void swap(ConsList &);
-};
-
-class Head : public Expr
-{
-public:
-  Expr *expr_;
-
-  Head(const Head &);
-  Head &operator=(const Head &);
-  Head(Expr *p1);
-  ~Head();
-  virtual void accept(Visitor *v);
-  virtual Head *clone() const;
-  void swap(Head &);
-};
-
-class IsEmpty : public Expr
-{
-public:
-  Expr *expr_;
-
-  IsEmpty(const IsEmpty &);
-  IsEmpty &operator=(const IsEmpty &);
-  IsEmpty(Expr *p1);
-  ~IsEmpty();
-  virtual void accept(Visitor *v);
-  virtual IsEmpty *clone() const;
-  void swap(IsEmpty &);
-};
-
-class Tail : public Expr
-{
-public:
-  Expr *expr_;
-
-  Tail(const Tail &);
-  Tail &operator=(const Tail &);
-  Tail(Expr *p1);
-  ~Tail();
-  virtual void accept(Visitor *v);
-  virtual Tail *clone() const;
-  void swap(Tail &);
-};
-
-class Succ : public Expr
-{
-public:
-  Expr *expr_;
-
-  Succ(const Succ &);
-  Succ &operator=(const Succ &);
-  Succ(Expr *p1);
-  ~Succ();
-  virtual void accept(Visitor *v);
-  virtual Succ *clone() const;
-  void swap(Succ &);
-};
-
-class LogicNot : public Expr
-{
-public:
-  Expr *expr_;
-
-  LogicNot(const LogicNot &);
-  LogicNot &operator=(const LogicNot &);
-  LogicNot(Expr *p1);
-  ~LogicNot();
-  virtual void accept(Visitor *v);
-  virtual LogicNot *clone() const;
-  void swap(LogicNot &);
-};
-
-class Pred : public Expr
-{
-public:
-  Expr *expr_;
-
-  Pred(const Pred &);
-  Pred &operator=(const Pred &);
-  Pred(Expr *p1);
-  ~Pred();
-  virtual void accept(Visitor *v);
-  virtual Pred *clone() const;
-  void swap(Pred &);
-};
-
-class IsZero : public Expr
-{
-public:
-  Expr *expr_;
-
-  IsZero(const IsZero &);
-  IsZero &operator=(const IsZero &);
-  IsZero(Expr *p1);
-  ~IsZero();
-  virtual void accept(Visitor *v);
-  virtual IsZero *clone() const;
-  void swap(IsZero &);
-};
-
-class Fix : public Expr
-{
-public:
-  Expr *expr_;
-
-  Fix(const Fix &);
-  Fix &operator=(const Fix &);
-  Fix(Expr *p1);
-  ~Fix();
-  virtual void accept(Visitor *v);
-  virtual Fix *clone() const;
-  void swap(Fix &);
-};
-
-class NatRec : public Expr
-{
-public:
-  Expr *expr_1;
-  Expr *expr_2;
-  Expr *expr_3;
-
-  NatRec(const NatRec &);
-  NatRec &operator=(const NatRec &);
-  NatRec(Expr *p1, Expr *p2, Expr *p3);
-  ~NatRec();
-  virtual void accept(Visitor *v);
-  virtual NatRec *clone() const;
-  void swap(NatRec &);
-};
-
-class Fold : public Expr
-{
-public:
-  Type *type_;
-  Expr *expr_;
-
-  Fold(const Fold &);
-  Fold &operator=(const Fold &);
-  Fold(Type *p1, Expr *p2);
-  ~Fold();
-  virtual void accept(Visitor *v);
-  virtual Fold *clone() const;
-  void swap(Fold &);
-};
-
-class Unfold : public Expr
-{
-public:
-  Type *type_;
-  Expr *expr_;
-
-  Unfold(const Unfold &);
-  Unfold &operator=(const Unfold &);
-  Unfold(Type *p1, Expr *p2);
-  ~Unfold();
-  virtual void accept(Visitor *v);
-  virtual Unfold *clone() const;
-  void swap(Unfold &);
-};
-
-class DotRecord : public Expr
-{
-public:
-  Expr *expr_;
-  StellaIdent stellaident_;
-
-  DotRecord(const DotRecord &);
-  DotRecord &operator=(const DotRecord &);
-  DotRecord(Expr *p1, StellaIdent p2);
-  ~DotRecord();
-  virtual void accept(Visitor *v);
-  virtual DotRecord *clone() const;
-  void swap(DotRecord &);
-};
-
-class DotTuple : public Expr
-{
-public:
-  Expr *expr_;
-  Integer integer_;
-
-  DotTuple(const DotTuple &);
-  DotTuple &operator=(const DotTuple &);
-  DotTuple(Expr *p1, Integer p2);
-  ~DotTuple();
-  virtual void accept(Visitor *v);
-  virtual DotTuple *clone() const;
-  void swap(DotTuple &);
-};
-
-class ConstTrue : public Expr
-{
-public:
-
-  ConstTrue(const ConstTrue &);
-  ConstTrue &operator=(const ConstTrue &);
-  ConstTrue();
-  ~ConstTrue();
-  virtual void accept(Visitor *v);
-  virtual ConstTrue *clone() const;
-  void swap(ConstTrue &);
-};
-
-class ConstFalse : public Expr
-{
-public:
-
-  ConstFalse(const ConstFalse &);
-  ConstFalse &operator=(const ConstFalse &);
-  ConstFalse();
-  ~ConstFalse();
-  virtual void accept(Visitor *v);
-  virtual ConstFalse *clone() const;
-  void swap(ConstFalse &);
-};
-
-class ConstInt : public Expr
-{
-public:
-  Integer integer_;
-
-  ConstInt(const ConstInt &);
-  ConstInt &operator=(const ConstInt &);
-  ConstInt(Integer p1);
-  ~ConstInt();
-  virtual void accept(Visitor *v);
-  virtual ConstInt *clone() const;
-  void swap(ConstInt &);
-};
-
-class Var : public Expr
-{
-public:
-  StellaIdent stellaident_;
-
-  Var(const Var &);
-  Var &operator=(const Var &);
-  Var(StellaIdent p1);
-  ~Var();
-  virtual void accept(Visitor *v);
-  virtual Var *clone() const;
-  void swap(Var &);
-};
-
-class AMatchCase : public MatchCase
-{
-public:
-  Pattern *pattern_;
-  Expr *expr_;
-
-  AMatchCase(const AMatchCase &);
-  AMatchCase &operator=(const AMatchCase &);
-  AMatchCase(Pattern *p1, Expr *p2);
-  ~AMatchCase();
-  virtual void accept(Visitor *v);
-  virtual AMatchCase *clone() const;
-  void swap(AMatchCase &);
-};
-
-class NoTyping : public OptionalTyping
-{
-public:
-
-  NoTyping(const NoTyping &);
-  NoTyping &operator=(const NoTyping &);
-  NoTyping();
-  ~NoTyping();
-  virtual void accept(Visitor *v);
-  virtual NoTyping *clone() const;
-  void swap(NoTyping &);
-};
-
-class SomeTyping : public OptionalTyping
-{
-public:
-  Type *type_;
-
-  SomeTyping(const SomeTyping &);
-  SomeTyping &operator=(const SomeTyping &);
-  SomeTyping(Type *p1);
-  ~SomeTyping();
-  virtual void accept(Visitor *v);
-  virtual SomeTyping *clone() const;
-  void swap(SomeTyping &);
-};
-
-class NoPatternData : public PatternData
-{
-public:
-
-  NoPatternData(const NoPatternData &);
-  NoPatternData &operator=(const NoPatternData &);
-  NoPatternData();
-  ~NoPatternData();
-  virtual void accept(Visitor *v);
-  virtual NoPatternData *clone() const;
-  void swap(NoPatternData &);
-};
-
-class SomePatternData : public PatternData
-{
-public:
-  Pattern *pattern_;
-
-  SomePatternData(const SomePatternData &);
-  SomePatternData &operator=(const SomePatternData &);
-  SomePatternData(Pattern *p1);
-  ~SomePatternData();
-  virtual void accept(Visitor *v);
-  virtual SomePatternData *clone() const;
-  void swap(SomePatternData &);
-};
-
-class NoExprData : public ExprData
-{
-public:
-
-  NoExprData(const NoExprData &);
-  NoExprData &operator=(const NoExprData &);
-  NoExprData();
-  ~NoExprData();
-  virtual void accept(Visitor *v);
-  virtual NoExprData *clone() const;
-  void swap(NoExprData &);
-};
-
-class SomeExprData : public ExprData
-{
-public:
-  Expr *expr_;
-
-  SomeExprData(const SomeExprData &);
-  SomeExprData &operator=(const SomeExprData &);
-  SomeExprData(Expr *p1);
-  ~SomeExprData();
-  virtual void accept(Visitor *v);
-  virtual SomeExprData *clone() const;
-  void swap(SomeExprData &);
-};
-
-class PatternVariant : public Pattern
-{
-public:
-  StellaIdent stellaident_;
-  PatternData *patterndata_;
-
-  PatternVariant(const PatternVariant &);
-  PatternVariant &operator=(const PatternVariant &);
-  PatternVariant(StellaIdent p1, PatternData *p2);
-  ~PatternVariant();
-  virtual void accept(Visitor *v);
-  virtual PatternVariant *clone() const;
-  void swap(PatternVariant &);
-};
-
-class PatternTuple : public Pattern
-{
-public:
-  ListPattern *listpattern_;
-
-  PatternTuple(const PatternTuple &);
-  PatternTuple &operator=(const PatternTuple &);
-  PatternTuple(ListPattern *p1);
-  ~PatternTuple();
-  virtual void accept(Visitor *v);
-  virtual PatternTuple *clone() const;
-  void swap(PatternTuple &);
-};
-
-class PatternRecord : public Pattern
-{
-public:
-  ListLabelledPattern *listlabelledpattern_;
-
-  PatternRecord(const PatternRecord &);
-  PatternRecord &operator=(const PatternRecord &);
-  PatternRecord(ListLabelledPattern *p1);
-  ~PatternRecord();
-  virtual void accept(Visitor *v);
-  virtual PatternRecord *clone() const;
-  void swap(PatternRecord &);
-};
-
-class PatternList : public Pattern
-{
-public:
-  ListPattern *listpattern_;
-
-  PatternList(const PatternList &);
-  PatternList &operator=(const PatternList &);
-  PatternList(ListPattern *p1);
-  ~PatternList();
-  virtual void accept(Visitor *v);
-  virtual PatternList *clone() const;
-  void swap(PatternList &);
-};
-
-class PatternCons : public Pattern
-{
-public:
-  Pattern *pattern_1;
-  Pattern *pattern_2;
-
-  PatternCons(const PatternCons &);
-  PatternCons &operator=(const PatternCons &);
-  PatternCons(Pattern *p1, Pattern *p2);
-  ~PatternCons();
-  virtual void accept(Visitor *v);
-  virtual PatternCons *clone() const;
-  void swap(PatternCons &);
-};
-
-class PatternFalse : public Pattern
-{
-public:
-
-  PatternFalse(const PatternFalse &);
-  PatternFalse &operator=(const PatternFalse &);
-  PatternFalse();
-  ~PatternFalse();
-  virtual void accept(Visitor *v);
-  virtual PatternFalse *clone() const;
-  void swap(PatternFalse &);
-};
-
-class PatternTrue : public Pattern
-{
-public:
-
-  PatternTrue(const PatternTrue &);
-  PatternTrue &operator=(const PatternTrue &);
-  PatternTrue();
-  ~PatternTrue();
-  virtual void accept(Visitor *v);
-  virtual PatternTrue *clone() const;
-  void swap(PatternTrue &);
-};
-
-class PatternInt : public Pattern
-{
-public:
-  Integer integer_;
-
-  PatternInt(const PatternInt &);
-  PatternInt &operator=(const PatternInt &);
-  PatternInt(Integer p1);
-  ~PatternInt();
-  virtual void accept(Visitor *v);
-  virtual PatternInt *clone() const;
-  void swap(PatternInt &);
-};
-
-class PatternSucc : public Pattern
-{
-public:
-  Pattern *pattern_;
-
-  PatternSucc(const PatternSucc &);
-  PatternSucc &operator=(const PatternSucc &);
-  PatternSucc(Pattern *p1);
-  ~PatternSucc();
-  virtual void accept(Visitor *v);
-  virtual PatternSucc *clone() const;
-  void swap(PatternSucc &);
-};
-
-class PatternVar : public Pattern
-{
-public:
-  StellaIdent stellaident_;
-
-  PatternVar(const PatternVar &);
-  PatternVar &operator=(const PatternVar &);
-  PatternVar(StellaIdent p1);
-  ~PatternVar();
-  virtual void accept(Visitor *v);
-  virtual PatternVar *clone() const;
-  void swap(PatternVar &);
-};
-
-class ALabelledPattern : public LabelledPattern
-{
-public:
-  StellaIdent stellaident_;
-  Pattern *pattern_;
-
-  ALabelledPattern(const ALabelledPattern &);
-  ALabelledPattern &operator=(const ALabelledPattern &);
-  ALabelledPattern(StellaIdent p1, Pattern *p2);
-  ~ALabelledPattern();
-  virtual void accept(Visitor *v);
-  virtual ALabelledPattern *clone() const;
-  void swap(ALabelledPattern &);
-};
-
-class ABinding : public Binding
-{
-public:
-  StellaIdent stellaident_;
-  Expr *expr_;
-
-  ABinding(const ABinding &);
-  ABinding &operator=(const ABinding &);
-  ABinding(StellaIdent p1, Expr *p2);
-  ~ABinding();
-  virtual void accept(Visitor *v);
-  virtual ABinding *clone() const;
-  void swap(ABinding &);
-};
-
 class TypeFun : public Type
 {
 public:
@@ -1591,6 +802,984 @@ public:
   void swap(TypeVar &);
 };
 
+class AMatchCase : public MatchCase
+{
+public:
+  Pattern *pattern_;
+  Expr *expr_;
+
+  AMatchCase(const AMatchCase &);
+  AMatchCase &operator=(const AMatchCase &);
+  AMatchCase(Pattern *p1, Expr *p2);
+  ~AMatchCase();
+  virtual void accept(Visitor *v);
+  virtual AMatchCase *clone() const;
+  void swap(AMatchCase &);
+};
+
+class NoTyping : public OptionalTyping
+{
+public:
+
+  NoTyping(const NoTyping &);
+  NoTyping &operator=(const NoTyping &);
+  NoTyping();
+  ~NoTyping();
+  virtual void accept(Visitor *v);
+  virtual NoTyping *clone() const;
+  void swap(NoTyping &);
+};
+
+class SomeTyping : public OptionalTyping
+{
+public:
+  Type *type_;
+
+  SomeTyping(const SomeTyping &);
+  SomeTyping &operator=(const SomeTyping &);
+  SomeTyping(Type *p1);
+  ~SomeTyping();
+  virtual void accept(Visitor *v);
+  virtual SomeTyping *clone() const;
+  void swap(SomeTyping &);
+};
+
+class NoPatternData : public PatternData
+{
+public:
+
+  NoPatternData(const NoPatternData &);
+  NoPatternData &operator=(const NoPatternData &);
+  NoPatternData();
+  ~NoPatternData();
+  virtual void accept(Visitor *v);
+  virtual NoPatternData *clone() const;
+  void swap(NoPatternData &);
+};
+
+class SomePatternData : public PatternData
+{
+public:
+  Pattern *pattern_;
+
+  SomePatternData(const SomePatternData &);
+  SomePatternData &operator=(const SomePatternData &);
+  SomePatternData(Pattern *p1);
+  ~SomePatternData();
+  virtual void accept(Visitor *v);
+  virtual SomePatternData *clone() const;
+  void swap(SomePatternData &);
+};
+
+class NoExprData : public ExprData
+{
+public:
+
+  NoExprData(const NoExprData &);
+  NoExprData &operator=(const NoExprData &);
+  NoExprData();
+  ~NoExprData();
+  virtual void accept(Visitor *v);
+  virtual NoExprData *clone() const;
+  void swap(NoExprData &);
+};
+
+class SomeExprData : public ExprData
+{
+public:
+  Expr *expr_;
+
+  SomeExprData(const SomeExprData &);
+  SomeExprData &operator=(const SomeExprData &);
+  SomeExprData(Expr *p1);
+  ~SomeExprData();
+  virtual void accept(Visitor *v);
+  virtual SomeExprData *clone() const;
+  void swap(SomeExprData &);
+};
+
+class PatternVariant : public Pattern
+{
+public:
+  StellaIdent stellaident_;
+  PatternData *patterndata_;
+
+  PatternVariant(const PatternVariant &);
+  PatternVariant &operator=(const PatternVariant &);
+  PatternVariant(StellaIdent p1, PatternData *p2);
+  ~PatternVariant();
+  virtual void accept(Visitor *v);
+  virtual PatternVariant *clone() const;
+  void swap(PatternVariant &);
+};
+
+class PatternInl : public Pattern
+{
+public:
+  Pattern *pattern_;
+
+  PatternInl(const PatternInl &);
+  PatternInl &operator=(const PatternInl &);
+  PatternInl(Pattern *p1);
+  ~PatternInl();
+  virtual void accept(Visitor *v);
+  virtual PatternInl *clone() const;
+  void swap(PatternInl &);
+};
+
+class PatternInr : public Pattern
+{
+public:
+  Pattern *pattern_;
+
+  PatternInr(const PatternInr &);
+  PatternInr &operator=(const PatternInr &);
+  PatternInr(Pattern *p1);
+  ~PatternInr();
+  virtual void accept(Visitor *v);
+  virtual PatternInr *clone() const;
+  void swap(PatternInr &);
+};
+
+class PatternTuple : public Pattern
+{
+public:
+  ListPattern *listpattern_;
+
+  PatternTuple(const PatternTuple &);
+  PatternTuple &operator=(const PatternTuple &);
+  PatternTuple(ListPattern *p1);
+  ~PatternTuple();
+  virtual void accept(Visitor *v);
+  virtual PatternTuple *clone() const;
+  void swap(PatternTuple &);
+};
+
+class PatternRecord : public Pattern
+{
+public:
+  ListLabelledPattern *listlabelledpattern_;
+
+  PatternRecord(const PatternRecord &);
+  PatternRecord &operator=(const PatternRecord &);
+  PatternRecord(ListLabelledPattern *p1);
+  ~PatternRecord();
+  virtual void accept(Visitor *v);
+  virtual PatternRecord *clone() const;
+  void swap(PatternRecord &);
+};
+
+class PatternList : public Pattern
+{
+public:
+  ListPattern *listpattern_;
+
+  PatternList(const PatternList &);
+  PatternList &operator=(const PatternList &);
+  PatternList(ListPattern *p1);
+  ~PatternList();
+  virtual void accept(Visitor *v);
+  virtual PatternList *clone() const;
+  void swap(PatternList &);
+};
+
+class PatternCons : public Pattern
+{
+public:
+  Pattern *pattern_1;
+  Pattern *pattern_2;
+
+  PatternCons(const PatternCons &);
+  PatternCons &operator=(const PatternCons &);
+  PatternCons(Pattern *p1, Pattern *p2);
+  ~PatternCons();
+  virtual void accept(Visitor *v);
+  virtual PatternCons *clone() const;
+  void swap(PatternCons &);
+};
+
+class PatternFalse : public Pattern
+{
+public:
+
+  PatternFalse(const PatternFalse &);
+  PatternFalse &operator=(const PatternFalse &);
+  PatternFalse();
+  ~PatternFalse();
+  virtual void accept(Visitor *v);
+  virtual PatternFalse *clone() const;
+  void swap(PatternFalse &);
+};
+
+class PatternTrue : public Pattern
+{
+public:
+
+  PatternTrue(const PatternTrue &);
+  PatternTrue &operator=(const PatternTrue &);
+  PatternTrue();
+  ~PatternTrue();
+  virtual void accept(Visitor *v);
+  virtual PatternTrue *clone() const;
+  void swap(PatternTrue &);
+};
+
+class PatternUnit : public Pattern
+{
+public:
+
+  PatternUnit(const PatternUnit &);
+  PatternUnit &operator=(const PatternUnit &);
+  PatternUnit();
+  ~PatternUnit();
+  virtual void accept(Visitor *v);
+  virtual PatternUnit *clone() const;
+  void swap(PatternUnit &);
+};
+
+class PatternInt : public Pattern
+{
+public:
+  Integer integer_;
+
+  PatternInt(const PatternInt &);
+  PatternInt &operator=(const PatternInt &);
+  PatternInt(Integer p1);
+  ~PatternInt();
+  virtual void accept(Visitor *v);
+  virtual PatternInt *clone() const;
+  void swap(PatternInt &);
+};
+
+class PatternSucc : public Pattern
+{
+public:
+  Pattern *pattern_;
+
+  PatternSucc(const PatternSucc &);
+  PatternSucc &operator=(const PatternSucc &);
+  PatternSucc(Pattern *p1);
+  ~PatternSucc();
+  virtual void accept(Visitor *v);
+  virtual PatternSucc *clone() const;
+  void swap(PatternSucc &);
+};
+
+class PatternVar : public Pattern
+{
+public:
+  StellaIdent stellaident_;
+
+  PatternVar(const PatternVar &);
+  PatternVar &operator=(const PatternVar &);
+  PatternVar(StellaIdent p1);
+  ~PatternVar();
+  virtual void accept(Visitor *v);
+  virtual PatternVar *clone() const;
+  void swap(PatternVar &);
+};
+
+class ALabelledPattern : public LabelledPattern
+{
+public:
+  StellaIdent stellaident_;
+  Pattern *pattern_;
+
+  ALabelledPattern(const ALabelledPattern &);
+  ALabelledPattern &operator=(const ALabelledPattern &);
+  ALabelledPattern(StellaIdent p1, Pattern *p2);
+  ~ALabelledPattern();
+  virtual void accept(Visitor *v);
+  virtual ALabelledPattern *clone() const;
+  void swap(ALabelledPattern &);
+};
+
+class ABinding : public Binding
+{
+public:
+  StellaIdent stellaident_;
+  Expr *expr_;
+
+  ABinding(const ABinding &);
+  ABinding &operator=(const ABinding &);
+  ABinding(StellaIdent p1, Expr *p2);
+  ~ABinding();
+  virtual void accept(Visitor *v);
+  virtual ABinding *clone() const;
+  void swap(ABinding &);
+};
+
+class Sequence : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  Sequence(const Sequence &);
+  Sequence &operator=(const Sequence &);
+  Sequence(Expr *p1, Expr *p2);
+  ~Sequence();
+  virtual void accept(Visitor *v);
+  virtual Sequence *clone() const;
+  void swap(Sequence &);
+};
+
+class If : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+  Expr *expr_3;
+
+  If(const If &);
+  If &operator=(const If &);
+  If(Expr *p1, Expr *p2, Expr *p3);
+  ~If();
+  virtual void accept(Visitor *v);
+  virtual If *clone() const;
+  void swap(If &);
+};
+
+class Let : public Expr
+{
+public:
+  ListPatternBinding *listpatternbinding_;
+  Expr *expr_;
+
+  Let(const Let &);
+  Let &operator=(const Let &);
+  Let(ListPatternBinding *p1, Expr *p2);
+  ~Let();
+  virtual void accept(Visitor *v);
+  virtual Let *clone() const;
+  void swap(Let &);
+};
+
+class LetRec : public Expr
+{
+public:
+  ListPatternBinding *listpatternbinding_;
+  Expr *expr_;
+
+  LetRec(const LetRec &);
+  LetRec &operator=(const LetRec &);
+  LetRec(ListPatternBinding *p1, Expr *p2);
+  ~LetRec();
+  virtual void accept(Visitor *v);
+  virtual LetRec *clone() const;
+  void swap(LetRec &);
+};
+
+class LessThan : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  LessThan(const LessThan &);
+  LessThan &operator=(const LessThan &);
+  LessThan(Expr *p1, Expr *p2);
+  ~LessThan();
+  virtual void accept(Visitor *v);
+  virtual LessThan *clone() const;
+  void swap(LessThan &);
+};
+
+class LessThanOrEqual : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  LessThanOrEqual(const LessThanOrEqual &);
+  LessThanOrEqual &operator=(const LessThanOrEqual &);
+  LessThanOrEqual(Expr *p1, Expr *p2);
+  ~LessThanOrEqual();
+  virtual void accept(Visitor *v);
+  virtual LessThanOrEqual *clone() const;
+  void swap(LessThanOrEqual &);
+};
+
+class GreaterThan : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  GreaterThan(const GreaterThan &);
+  GreaterThan &operator=(const GreaterThan &);
+  GreaterThan(Expr *p1, Expr *p2);
+  ~GreaterThan();
+  virtual void accept(Visitor *v);
+  virtual GreaterThan *clone() const;
+  void swap(GreaterThan &);
+};
+
+class GreaterThanOrEqual : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  GreaterThanOrEqual(const GreaterThanOrEqual &);
+  GreaterThanOrEqual &operator=(const GreaterThanOrEqual &);
+  GreaterThanOrEqual(Expr *p1, Expr *p2);
+  ~GreaterThanOrEqual();
+  virtual void accept(Visitor *v);
+  virtual GreaterThanOrEqual *clone() const;
+  void swap(GreaterThanOrEqual &);
+};
+
+class Equal : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  Equal(const Equal &);
+  Equal &operator=(const Equal &);
+  Equal(Expr *p1, Expr *p2);
+  ~Equal();
+  virtual void accept(Visitor *v);
+  virtual Equal *clone() const;
+  void swap(Equal &);
+};
+
+class NotEqual : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  NotEqual(const NotEqual &);
+  NotEqual &operator=(const NotEqual &);
+  NotEqual(Expr *p1, Expr *p2);
+  ~NotEqual();
+  virtual void accept(Visitor *v);
+  virtual NotEqual *clone() const;
+  void swap(NotEqual &);
+};
+
+class TypeAsc : public Expr
+{
+public:
+  Expr *expr_;
+  Type *type_;
+
+  TypeAsc(const TypeAsc &);
+  TypeAsc &operator=(const TypeAsc &);
+  TypeAsc(Expr *p1, Type *p2);
+  ~TypeAsc();
+  virtual void accept(Visitor *v);
+  virtual TypeAsc *clone() const;
+  void swap(TypeAsc &);
+};
+
+class Abstraction : public Expr
+{
+public:
+  ListParamDecl *listparamdecl_;
+  Expr *expr_;
+
+  Abstraction(const Abstraction &);
+  Abstraction &operator=(const Abstraction &);
+  Abstraction(ListParamDecl *p1, Expr *p2);
+  ~Abstraction();
+  virtual void accept(Visitor *v);
+  virtual Abstraction *clone() const;
+  void swap(Abstraction &);
+};
+
+class Variant : public Expr
+{
+public:
+  StellaIdent stellaident_;
+  ExprData *exprdata_;
+
+  Variant(const Variant &);
+  Variant &operator=(const Variant &);
+  Variant(StellaIdent p1, ExprData *p2);
+  ~Variant();
+  virtual void accept(Visitor *v);
+  virtual Variant *clone() const;
+  void swap(Variant &);
+};
+
+class Match : public Expr
+{
+public:
+  Expr *expr_;
+  ListMatchCase *listmatchcase_;
+
+  Match(const Match &);
+  Match &operator=(const Match &);
+  Match(Expr *p1, ListMatchCase *p2);
+  ~Match();
+  virtual void accept(Visitor *v);
+  virtual Match *clone() const;
+  void swap(Match &);
+};
+
+class List : public Expr
+{
+public:
+  ListExpr *listexpr_;
+
+  List(const List &);
+  List &operator=(const List &);
+  List(ListExpr *p1);
+  ~List();
+  virtual void accept(Visitor *v);
+  virtual List *clone() const;
+  void swap(List &);
+};
+
+class Add : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  Add(const Add &);
+  Add &operator=(const Add &);
+  Add(Expr *p1, Expr *p2);
+  ~Add();
+  virtual void accept(Visitor *v);
+  virtual Add *clone() const;
+  void swap(Add &);
+};
+
+class Subtract : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  Subtract(const Subtract &);
+  Subtract &operator=(const Subtract &);
+  Subtract(Expr *p1, Expr *p2);
+  ~Subtract();
+  virtual void accept(Visitor *v);
+  virtual Subtract *clone() const;
+  void swap(Subtract &);
+};
+
+class LogicOr : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  LogicOr(const LogicOr &);
+  LogicOr &operator=(const LogicOr &);
+  LogicOr(Expr *p1, Expr *p2);
+  ~LogicOr();
+  virtual void accept(Visitor *v);
+  virtual LogicOr *clone() const;
+  void swap(LogicOr &);
+};
+
+class Multiply : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  Multiply(const Multiply &);
+  Multiply &operator=(const Multiply &);
+  Multiply(Expr *p1, Expr *p2);
+  ~Multiply();
+  virtual void accept(Visitor *v);
+  virtual Multiply *clone() const;
+  void swap(Multiply &);
+};
+
+class Divide : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  Divide(const Divide &);
+  Divide &operator=(const Divide &);
+  Divide(Expr *p1, Expr *p2);
+  ~Divide();
+  virtual void accept(Visitor *v);
+  virtual Divide *clone() const;
+  void swap(Divide &);
+};
+
+class LogicAnd : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  LogicAnd(const LogicAnd &);
+  LogicAnd &operator=(const LogicAnd &);
+  LogicAnd(Expr *p1, Expr *p2);
+  ~LogicAnd();
+  virtual void accept(Visitor *v);
+  virtual LogicAnd *clone() const;
+  void swap(LogicAnd &);
+};
+
+class Application : public Expr
+{
+public:
+  Expr *expr_;
+  ListExpr *listexpr_;
+
+  Application(const Application &);
+  Application &operator=(const Application &);
+  Application(Expr *p1, ListExpr *p2);
+  ~Application();
+  virtual void accept(Visitor *v);
+  virtual Application *clone() const;
+  void swap(Application &);
+};
+
+class DotRecord : public Expr
+{
+public:
+  Expr *expr_;
+  StellaIdent stellaident_;
+
+  DotRecord(const DotRecord &);
+  DotRecord &operator=(const DotRecord &);
+  DotRecord(Expr *p1, StellaIdent p2);
+  ~DotRecord();
+  virtual void accept(Visitor *v);
+  virtual DotRecord *clone() const;
+  void swap(DotRecord &);
+};
+
+class DotTuple : public Expr
+{
+public:
+  Expr *expr_;
+  Integer integer_;
+
+  DotTuple(const DotTuple &);
+  DotTuple &operator=(const DotTuple &);
+  DotTuple(Expr *p1, Integer p2);
+  ~DotTuple();
+  virtual void accept(Visitor *v);
+  virtual DotTuple *clone() const;
+  void swap(DotTuple &);
+};
+
+class Tuple : public Expr
+{
+public:
+  ListExpr *listexpr_;
+
+  Tuple(const Tuple &);
+  Tuple &operator=(const Tuple &);
+  Tuple(ListExpr *p1);
+  ~Tuple();
+  virtual void accept(Visitor *v);
+  virtual Tuple *clone() const;
+  void swap(Tuple &);
+};
+
+class Record : public Expr
+{
+public:
+  ListBinding *listbinding_;
+
+  Record(const Record &);
+  Record &operator=(const Record &);
+  Record(ListBinding *p1);
+  ~Record();
+  virtual void accept(Visitor *v);
+  virtual Record *clone() const;
+  void swap(Record &);
+};
+
+class ConsList : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  ConsList(const ConsList &);
+  ConsList &operator=(const ConsList &);
+  ConsList(Expr *p1, Expr *p2);
+  ~ConsList();
+  virtual void accept(Visitor *v);
+  virtual ConsList *clone() const;
+  void swap(ConsList &);
+};
+
+class Head : public Expr
+{
+public:
+  Expr *expr_;
+
+  Head(const Head &);
+  Head &operator=(const Head &);
+  Head(Expr *p1);
+  ~Head();
+  virtual void accept(Visitor *v);
+  virtual Head *clone() const;
+  void swap(Head &);
+};
+
+class IsEmpty : public Expr
+{
+public:
+  Expr *expr_;
+
+  IsEmpty(const IsEmpty &);
+  IsEmpty &operator=(const IsEmpty &);
+  IsEmpty(Expr *p1);
+  ~IsEmpty();
+  virtual void accept(Visitor *v);
+  virtual IsEmpty *clone() const;
+  void swap(IsEmpty &);
+};
+
+class Tail : public Expr
+{
+public:
+  Expr *expr_;
+
+  Tail(const Tail &);
+  Tail &operator=(const Tail &);
+  Tail(Expr *p1);
+  ~Tail();
+  virtual void accept(Visitor *v);
+  virtual Tail *clone() const;
+  void swap(Tail &);
+};
+
+class Inl : public Expr
+{
+public:
+  Expr *expr_;
+
+  Inl(const Inl &);
+  Inl &operator=(const Inl &);
+  Inl(Expr *p1);
+  ~Inl();
+  virtual void accept(Visitor *v);
+  virtual Inl *clone() const;
+  void swap(Inl &);
+};
+
+class Inr : public Expr
+{
+public:
+  Expr *expr_;
+
+  Inr(const Inr &);
+  Inr &operator=(const Inr &);
+  Inr(Expr *p1);
+  ~Inr();
+  virtual void accept(Visitor *v);
+  virtual Inr *clone() const;
+  void swap(Inr &);
+};
+
+class Succ : public Expr
+{
+public:
+  Expr *expr_;
+
+  Succ(const Succ &);
+  Succ &operator=(const Succ &);
+  Succ(Expr *p1);
+  ~Succ();
+  virtual void accept(Visitor *v);
+  virtual Succ *clone() const;
+  void swap(Succ &);
+};
+
+class LogicNot : public Expr
+{
+public:
+  Expr *expr_;
+
+  LogicNot(const LogicNot &);
+  LogicNot &operator=(const LogicNot &);
+  LogicNot(Expr *p1);
+  ~LogicNot();
+  virtual void accept(Visitor *v);
+  virtual LogicNot *clone() const;
+  void swap(LogicNot &);
+};
+
+class Pred : public Expr
+{
+public:
+  Expr *expr_;
+
+  Pred(const Pred &);
+  Pred &operator=(const Pred &);
+  Pred(Expr *p1);
+  ~Pred();
+  virtual void accept(Visitor *v);
+  virtual Pred *clone() const;
+  void swap(Pred &);
+};
+
+class IsZero : public Expr
+{
+public:
+  Expr *expr_;
+
+  IsZero(const IsZero &);
+  IsZero &operator=(const IsZero &);
+  IsZero(Expr *p1);
+  ~IsZero();
+  virtual void accept(Visitor *v);
+  virtual IsZero *clone() const;
+  void swap(IsZero &);
+};
+
+class Fix : public Expr
+{
+public:
+  Expr *expr_;
+
+  Fix(const Fix &);
+  Fix &operator=(const Fix &);
+  Fix(Expr *p1);
+  ~Fix();
+  virtual void accept(Visitor *v);
+  virtual Fix *clone() const;
+  void swap(Fix &);
+};
+
+class NatRec : public Expr
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+  Expr *expr_3;
+
+  NatRec(const NatRec &);
+  NatRec &operator=(const NatRec &);
+  NatRec(Expr *p1, Expr *p2, Expr *p3);
+  ~NatRec();
+  virtual void accept(Visitor *v);
+  virtual NatRec *clone() const;
+  void swap(NatRec &);
+};
+
+class Fold : public Expr
+{
+public:
+  Type *type_;
+  Expr *expr_;
+
+  Fold(const Fold &);
+  Fold &operator=(const Fold &);
+  Fold(Type *p1, Expr *p2);
+  ~Fold();
+  virtual void accept(Visitor *v);
+  virtual Fold *clone() const;
+  void swap(Fold &);
+};
+
+class Unfold : public Expr
+{
+public:
+  Type *type_;
+  Expr *expr_;
+
+  Unfold(const Unfold &);
+  Unfold &operator=(const Unfold &);
+  Unfold(Type *p1, Expr *p2);
+  ~Unfold();
+  virtual void accept(Visitor *v);
+  virtual Unfold *clone() const;
+  void swap(Unfold &);
+};
+
+class ConstTrue : public Expr
+{
+public:
+
+  ConstTrue(const ConstTrue &);
+  ConstTrue &operator=(const ConstTrue &);
+  ConstTrue();
+  ~ConstTrue();
+  virtual void accept(Visitor *v);
+  virtual ConstTrue *clone() const;
+  void swap(ConstTrue &);
+};
+
+class ConstFalse : public Expr
+{
+public:
+
+  ConstFalse(const ConstFalse &);
+  ConstFalse &operator=(const ConstFalse &);
+  ConstFalse();
+  ~ConstFalse();
+  virtual void accept(Visitor *v);
+  virtual ConstFalse *clone() const;
+  void swap(ConstFalse &);
+};
+
+class ConstUnit : public Expr
+{
+public:
+
+  ConstUnit(const ConstUnit &);
+  ConstUnit &operator=(const ConstUnit &);
+  ConstUnit();
+  ~ConstUnit();
+  virtual void accept(Visitor *v);
+  virtual ConstUnit *clone() const;
+  void swap(ConstUnit &);
+};
+
+class ConstInt : public Expr
+{
+public:
+  Integer integer_;
+
+  ConstInt(const ConstInt &);
+  ConstInt &operator=(const ConstInt &);
+  ConstInt(Integer p1);
+  ~ConstInt();
+  virtual void accept(Visitor *v);
+  virtual ConstInt *clone() const;
+  void swap(ConstInt &);
+};
+
+class Var : public Expr
+{
+public:
+  StellaIdent stellaident_;
+
+  Var(const Var &);
+  Var &operator=(const Var &);
+  Var(StellaIdent p1);
+  ~Var();
+  virtual void accept(Visitor *v);
+  virtual Var *clone() const;
+  void swap(Var &);
+};
+
+class APatternBinding : public PatternBinding
+{
+public:
+  Pattern *pattern_;
+  Expr *expr_;
+
+  APatternBinding(const APatternBinding &);
+  APatternBinding &operator=(const APatternBinding &);
+  APatternBinding(Pattern *p1, Expr *p2);
+  ~APatternBinding();
+  virtual void accept(Visitor *v);
+  virtual APatternBinding *clone() const;
+  void swap(APatternBinding &);
+};
+
 class AVariantFieldType : public VariantFieldType
 {
 public:
@@ -1701,14 +1890,14 @@ public:
 
 ListParamDecl* consListParamDecl(ParamDecl* x, ListParamDecl* xs);
 
-class ListExpr : public Visitable, public std::vector<Expr*>
+class ListType : public Visitable, public std::vector<Type*>
 {
 public:
   virtual void accept(Visitor *v);
-  virtual ListExpr *clone() const;
+  virtual ListType *clone() const;
 };
 
-ListExpr* consListExpr(Expr* x, ListExpr* xs);
+ListType* consListType(Type* x, ListType* xs);
 
 class ListMatchCase : public Visitable, public std::vector<MatchCase*>
 {
@@ -1746,14 +1935,23 @@ public:
 
 ListBinding* consListBinding(Binding* x, ListBinding* xs);
 
-class ListType : public Visitable, public std::vector<Type*>
+class ListExpr : public Visitable, public std::vector<Expr*>
 {
 public:
   virtual void accept(Visitor *v);
-  virtual ListType *clone() const;
+  virtual ListExpr *clone() const;
 };
 
-ListType* consListType(Type* x, ListType* xs);
+ListExpr* consListExpr(Expr* x, ListExpr* xs);
+
+class ListPatternBinding : public Visitable, public std::vector<PatternBinding*>
+{
+public:
+  virtual void accept(Visitor *v);
+  virtual ListPatternBinding *clone() const;
+};
+
+ListPatternBinding* consListPatternBinding(PatternBinding* x, ListPatternBinding* xs);
 
 class ListVariantFieldType : public Visitable, public std::vector<VariantFieldType*>
 {

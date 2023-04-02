@@ -45,27 +45,28 @@ namespace Stella
         return !(operator==(a, b));
     }
 
-    void MyVisitor::visitProgram(Program *t) {} //abstract class
-    void MyVisitor::visitLanguageDecl(LanguageDecl *t) {} //abstract class
-    void MyVisitor::visitExtension(Extension *t) {} //abstract class
-    void MyVisitor::visitDecl(Decl *t) {} //abstract class
-    void MyVisitor::visitLocalDecl(LocalDecl *t) {} //abstract class
-    void MyVisitor::visitAnnotation(Annotation *t) {} //abstract class
-    void MyVisitor::visitParamDecl(ParamDecl *t) {} //abstract class
-    void MyVisitor::visitReturnType(ReturnType *t) {} //abstract class
-    void MyVisitor::visitThrowType(ThrowType *t) {} //abstract class
-    void MyVisitor::visitExpr(Expr *t) {} //abstract class
-    void MyVisitor::visitMatchCase(MatchCase *t) {} //abstract class
-    void MyVisitor::visitOptionalTyping(OptionalTyping *t) {} //abstract class
-    void MyVisitor::visitPatternData(PatternData *t) {} //abstract class
-    void MyVisitor::visitExprData(ExprData *t) {} //abstract class
-    void MyVisitor::visitPattern(Pattern *t) {} //abstract class
-    void MyVisitor::visitLabelledPattern(LabelledPattern *t) {} //abstract class
-    void MyVisitor::visitBinding(Binding *t) {} //abstract class
-    void MyVisitor::visitType(Type *t) {} //abstract class
-    void MyVisitor::visitVariantFieldType(VariantFieldType *t) {} //abstract class
-    void MyVisitor::visitRecordFieldType(RecordFieldType *t) {} //abstract class
-    void MyVisitor::visitTyping(Typing *t) {} //abstract class
+    void MyVisitor::visitProgram(Program *t) {}                   // abstract class
+    void MyVisitor::visitLanguageDecl(LanguageDecl *t) {}         // abstract class
+    void MyVisitor::visitExtension(Extension *t) {}               // abstract class
+    void MyVisitor::visitDecl(Decl *t) {}                         // abstract class
+    void MyVisitor::visitLocalDecl(LocalDecl *t) {}               // abstract class
+    void MyVisitor::visitAnnotation(Annotation *t) {}             // abstract class
+    void MyVisitor::visitParamDecl(ParamDecl *t) {}               // abstract class
+    void MyVisitor::visitReturnType(ReturnType *t) {}             // abstract class
+    void MyVisitor::visitThrowType(ThrowType *t) {}               // abstract class
+    void MyVisitor::visitType(Type *t) {}                         // abstract class
+    void MyVisitor::visitMatchCase(MatchCase *t) {}               // abstract class
+    void MyVisitor::visitOptionalTyping(OptionalTyping *t) {}     // abstract class
+    void MyVisitor::visitPatternData(PatternData *t) {}           // abstract class
+    void MyVisitor::visitExprData(ExprData *t) {}                 // abstract class
+    void MyVisitor::visitPattern(Pattern *t) {}                   // abstract class
+    void MyVisitor::visitLabelledPattern(LabelledPattern *t) {}   // abstract class
+    void MyVisitor::visitBinding(Binding *t) {}                   // abstract class
+    void MyVisitor::visitExpr(Expr *t) {}                         // abstract class
+    void MyVisitor::visitPatternBinding(PatternBinding *t) {}     // abstract class
+    void MyVisitor::visitVariantFieldType(VariantFieldType *t) {} // abstract class
+    void MyVisitor::visitRecordFieldType(RecordFieldType *t) {}   // abstract class
+    void MyVisitor::visitTyping(Typing *t) {}                     // abstract class
 
     void MyVisitor::visitAProgram(AProgram *a_program)
     {
@@ -236,6 +237,16 @@ namespace Stella
 
     }
 
+    void MyVisitor::visitSequence(Sequence *sequence)
+    {
+        /* Code For Sequence Goes Here */
+
+        if (sequence->expr_1)
+            sequence->expr_1->accept(this);
+        if (sequence->expr_2)
+            sequence->expr_2->accept(this);
+    }
+
     void MyVisitor::visitIf(If *if_)
     {
         /* Code For If Goes Here */
@@ -281,10 +292,20 @@ namespace Stella
     {
         /* Code For Let Goes Here */
 
-        visitStellaIdent(let->stellaident_);
-        if (let->expr_1) let->expr_1->accept(this);
-        if (let->expr_2) let->expr_2->accept(this);
+        if (let->listpatternbinding_)
+            let->listpatternbinding_->accept(this);
+        if (let->expr_)
+            let->expr_->accept(this);
+    }
 
+    void MyVisitor::visitLetRec(LetRec *let_rec)
+    {
+        /* Code For LetRec Goes Here */
+
+        if (let_rec->listpatternbinding_)
+            let_rec->listpatternbinding_->accept(this);
+        if (let_rec->expr_)
+            let_rec->expr_->accept(this);
     }
 
     void MyVisitor::visitLessThan(LessThan *less_than)
@@ -427,6 +448,16 @@ namespace Stella
 
     }
 
+    void MyVisitor::visitSubtract(Subtract *subtract)
+    {
+        /* Code For Subtract Goes Here */
+
+        if (subtract->expr_1)
+            subtract->expr_1->accept(this);
+        if (subtract->expr_2)
+            subtract->expr_2->accept(this);
+    }
+
     void MyVisitor::visitLogicOr(LogicOr *logic_or)
     {
         /* Code For LogicOr Goes Here */
@@ -443,6 +474,16 @@ namespace Stella
         if (multiply->expr_1) multiply->expr_1->accept(this);
         if (multiply->expr_2) multiply->expr_2->accept(this);
 
+    }
+
+    void MyVisitor::visitDivide(Divide *divide)
+    {
+        /* Code For Divide Goes Here */
+
+        if (divide->expr_1)
+            divide->expr_1->accept(this);
+        if (divide->expr_2)
+            divide->expr_2->accept(this);
     }
 
     void MyVisitor::visitLogicAnd(LogicAnd *logic_and)
@@ -526,6 +567,22 @@ namespace Stella
 
         if (tail->expr_) tail->expr_->accept(this);
 
+    }
+
+    void MyVisitor::visitInl(Inl *inl)
+    {
+        /* Code For Inl Goes Here */
+
+        if (inl->expr_)
+            inl->expr_->accept(this);
+    }
+
+    void MyVisitor::visitInr(Inr *inr)
+    {
+        /* Code For Inr Goes Here */
+
+        if (inr->expr_)
+            inr->expr_->accept(this);
     }
 
     void MyVisitor::visitSucc(Succ *succ)
@@ -678,6 +735,18 @@ namespace Stella
 
         contextStack.push_back(result);
     }
+    
+    void MyVisitor::visitConstUnit(ConstUnit *const_unit)
+    {
+        /* Code For ConstUnit Goes Here */
+        std::cout << "Visiting ConstUnit at " << const_unit->line_number << ":" << const_unit->char_number << '\n';
+
+        StoredType result = ST_UNIT;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
+    }
+
 
     void MyVisitor::visitConstInt(ConstInt *const_int)
     {
@@ -696,6 +765,17 @@ namespace Stella
         visitStellaIdent(var->stellaident_);
 
     }
+
+    void MyVisitor::visitAPatternBinding(APatternBinding *a_pattern_binding)
+    {
+        /* Code For APatternBinding Goes Here */
+
+        if (a_pattern_binding->pattern_)
+            a_pattern_binding->pattern_->accept(this);
+        if (a_pattern_binding->expr_)
+            a_pattern_binding->expr_->accept(this);
+    }
+
 
     void MyVisitor::visitAMatchCase(AMatchCase *a_match_case)
     {
@@ -749,6 +829,22 @@ namespace Stella
 
         if (some_expr_data->expr_) some_expr_data->expr_->accept(this);
 
+    }
+
+    void MyVisitor::visitPatternInl(PatternInl *pattern_inl)
+    {
+        /* Code For PatternInl Goes Here */
+
+        if (pattern_inl->pattern_)
+            pattern_inl->pattern_->accept(this);
+    }
+
+    void MyVisitor::visitPatternInr(PatternInr *pattern_inr)
+    {
+        /* Code For PatternInr Goes Here */
+
+        if (pattern_inr->pattern_)
+            pattern_inr->pattern_->accept(this);
     }
 
     void MyVisitor::visitPatternVariant(PatternVariant *pattern_variant)
@@ -805,6 +901,11 @@ namespace Stella
         /* Code For PatternTrue Goes Here */
 
 
+    }
+
+    void MyVisitor::visitPatternUnit(PatternUnit *pattern_unit)
+    {
+        /* Code For PatternUnit Goes Here */
     }
 
     void MyVisitor::visitPatternInt(PatternInt *pattern_int)
@@ -952,7 +1053,12 @@ namespace Stella
     {
         /* Code For TypeUnit Goes Here */
 
+        std::cout << "Visiting TypeUnit at " << type_unit->line_number << ":" << type_unit->char_number << '\n';
 
+        StoredType result = ST_UNIT;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTypeVar(TypeVar *type_var)
@@ -1055,6 +1161,14 @@ namespace Stella
     {
         std::cout << "Visiting ListExpr of " << list_expr->size() << " elements\n";
         for (ListExpr::iterator i = list_expr->begin() ; i != list_expr->end() ; ++i)
+        {
+            (*i)->accept(this);
+        }
+    }
+
+    void MyVisitor::visitListPatternBinding(ListPatternBinding *list_pattern_binding)
+    {
+        for (ListPatternBinding::iterator i = list_pattern_binding->begin(); i != list_pattern_binding->end(); ++i)
         {
             (*i)->accept(this);
         }

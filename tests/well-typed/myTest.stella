@@ -1,9 +1,0 @@
-language core;
-
-fn bobus(n : Nat, m : Nat) -> Nat {
-        return 1;
-}
-
-fn main () -> Nat {
-        return bobus(1, 4);
-}
