@@ -10,4 +10,5 @@ namespace Stella {
     const StoredType ST_IDENT = StoredType(VisitableTag::tagTypeIdent);
     const StoredType ST_FUN = StoredType(VisitableTag::tagTypeFunction);
     const StoredType ST_UNIT = StoredType(VisitableTag::tagTypeUnit);
+    const StoredType ST_TUPLE = StoredType(VisitableTag::tagTypeTuple);
 }

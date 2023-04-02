@@ -6,6 +6,7 @@ namespace Stella {
         tagTypeBool,
         tagTypeNat,
         tagTypeUnit,
+        tagTypeTuple,
 
         tagTypeFunction,
         tagTypeIdent

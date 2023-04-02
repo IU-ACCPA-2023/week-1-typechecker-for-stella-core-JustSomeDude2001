@@ -23,12 +23,18 @@ namespace Stella {
 
         int scope;
 
+        // some items might have value. Stored here.
+        int nat_value = -1;
+
         // ident is only relevant for when tag is tagTypeIdent.
         std::string ident = "";
 
         // argsTypes and returnTypes are only present in functions.
         std::vector<StoredType> argsTypes = {};
         std::vector<StoredType> returnTypes = {};
+
+        // contentTypes are only present in tuples and lists.
+        std::vector<StoredType> contentTypes = {};
 
         StoredType(VisitableTag _tag, int _scope) {
             tag = _tag;
@@ -38,11 +44,13 @@ namespace Stella {
         StoredType(VisitableTag _tag = VisitableTag::tagTypeNat,
                    int _scope = 0,
                    std::vector<StoredType> _argsTypes = {},
-                   std::vector<StoredType> _returnTypes = {}) {
+                   std::vector<StoredType> _returnTypes = {},
+                   std::vector<StoredType> _contentTypes = {}) {
             tag = _tag;
             scope = _scope;
             argsTypes = _argsTypes;
             returnTypes = _returnTypes;
+            contentTypes = _contentTypes;
         }
 
         /**
@@ -59,7 +67,8 @@ namespace Stella {
         bool operator==(const StoredType& b) {
             if (tag != b.tag ||
                 argsTypes.size() != b.argsTypes.size() ||
-                returnTypes.size() != b.returnTypes.size()) {
+                returnTypes.size() != b.returnTypes.size() ||
+                contentTypes.size() != b.contentTypes.size()) {
                 return false;
             }
             for (int i = 0; i < b.argsTypes.size(); i++) {
@@ -76,6 +85,14 @@ namespace Stella {
                     return false;
                 }
             }
+            for (int i = 0; i < b.contentTypes.size(); i++) {
+                if (contentTypes[i] == b.contentTypes[i]) {
+                    continue;
+                } else {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -88,6 +105,8 @@ namespace Stella {
             scope = b.scope;
             argsTypes = b.argsTypes;
             returnTypes = b.returnTypes;
+            contentTypes = b.contentTypes;
+            nat_value = b.nat_value;
             return *this;
         }
 

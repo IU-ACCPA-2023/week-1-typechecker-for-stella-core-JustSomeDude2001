@@ -401,8 +401,19 @@ namespace Stella
     {
         /* Code For Tuple Goes Here */
 
-        if (tuple->listexpr_) tuple->listexpr_->accept(this);
+        std::cout << "Visiting Tuple at " << tuple->line_number << ':' << tuple->char_number << '\n';
 
+        int startSize = contextStack.size();
+        if (tuple->listexpr_) tuple->listexpr_->accept(this);
+        resolveIdents(startSize);
+        std::vector <StoredType> content(contextStack.begin() + startSize, contextStack.end());
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_TUPLE;
+        result.contentTypes = content;
+        result.scope = current_scope;
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitRecord(Record *record)
@@ -708,9 +719,38 @@ namespace Stella
     {
         /* Code For DotTuple Goes Here */
 
+        int startSize = contextStack.size();
         if (dot_tuple->expr_) dot_tuple->expr_->accept(this);
-        visitInteger(dot_tuple->integer_);
+        resolveIdents(startSize);
+        std::vector <StoredType> tuples(contextStack.begin() + startSize, contextStack.end());
 
+        if (tuples.size() != 1) {
+            std::cout << "Dot notation without identifier or multiple identifiers at " << dot_tuple->line_number << ":" << dot_tuple->char_number << '\n';
+            exit(1);
+        }
+
+        int dotSize = contextStack.size();
+        visitInteger(dot_tuple->integer_);
+        std::vector <StoredType> indexInteger(contextStack.begin() + dotSize, contextStack.end());
+
+        if (indexInteger.size() != 1) {
+            std::cout << "No index or multiple index in tuple dot notation at " << dot_tuple->line_number << ':' << dot_tuple->char_number << '\n';
+            exit(1);
+        }
+
+        int index = indexInteger.back().nat_value;
+
+        if (index < 1 || index > tuples.back().contentTypes.size()) {
+            std::cout << "Index out of range for tuple dot notation at " << dot_tuple->line_number << ':' << dot_tuple->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = tuples.back().contentTypes[index - 1];
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitConstTrue(ConstTrue *const_true)
@@ -998,8 +1038,20 @@ namespace Stella
     {
         /* Code For TypeTuple Goes Here */
 
-        if (type_tuple->listtype_) type_tuple->listtype_->accept(this);
 
+        std::cout << "Visiting TypeTuple at " << type_tuple->line_number << ':' << type_tuple->char_number << '\n';
+
+        int startSize = contextStack.size();
+        if (type_tuple->listtype_) type_tuple->listtype_->accept(this);
+        resolveIdents(startSize);
+        std::vector <StoredType> content(contextStack.begin() + startSize, contextStack.end());
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_TUPLE;
+        result.contentTypes = content;
+        result.scope = current_scope;
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTypeRecord(TypeRecord *type_record)
@@ -1237,6 +1289,7 @@ namespace Stella
 
         StoredType result = ST_NAT;
         result.scope = current_scope;
+        result.nat_value = x;
 
         contextStack.push_back(result);
     }
