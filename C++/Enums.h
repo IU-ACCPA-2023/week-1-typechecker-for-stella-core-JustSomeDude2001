@@ -3,10 +3,14 @@
 //
 namespace Stella {
     enum VisitableTag {
+        tagTypePlaceholder,
+
         tagTypeBool,
         tagTypeNat,
         tagTypeUnit,
         tagTypeTuple,
+
+        tagTypeSumType,
 
         tagTypeFunction,
         tagTypeIdent

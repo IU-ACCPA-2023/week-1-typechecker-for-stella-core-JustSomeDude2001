@@ -45,6 +45,115 @@ namespace Stella {
             extensionRequirements[VisitableTag::tagTypeUnit].push_back("unit-type");
         }
 
+        /**
+         * Collapse a series of types to single type.
+         * Used for match cases.
+         *
+         * @param types
+         * @return
+         */
+        static StoredType collapseTypes(std::vector <StoredType> types) {
+            if (types[0].tag == VisitableTag::tagTypeSumType) {
+                StoredType result = ST_SUMTYPE;
+                for (int i = 0; i < types.size(); i++) {
+                    if (types[i].tag != VisitableTag::tagTypeSumType) {
+                        return ST_PLACEHOLDER;
+                    }
+                    for (int j = 0; j < 2; j++) {
+                        if (result.contentTypes[j] == ST_PLACEHOLDER) {
+                            result.contentTypes[j] = types[i].contentTypes[j];
+                        }
+                    }
+                }
+                for (int i = 0; i < types.size(); i++) {
+                    for (int j = 0; j < 2; j++) {
+                        if (result.contentTypes[j] == ST_PLACEHOLDER) {
+                            continue;
+                        }
+                        if (types[i].contentTypes[j] == ST_PLACEHOLDER) {
+                            continue;
+                        }
+                        if (types[i].contentTypes[j] != result.contentTypes[j]) {
+                            return ST_PLACEHOLDER;
+                        }
+                    }
+                }
+                return result;
+            } else {
+                StoredType result = types[0];
+                for (int i = 0; i < types.size(); i++) {
+                    if (result != types[i]) {
+                        return ST_PLACEHOLDER;
+                    }
+                }
+                return result;
+            }
+        }
+
+
+        /**
+         * Obtain top item from context stack with specified tag.
+         * Returns nullptr if no item with such tag.
+         *
+         * @param targetTag
+         * @return
+         */
+        StoredType* getTopTag(VisitableTag targetTag, int maxScope = 1e9) {
+            for (int i = contextStack.size() - 1; i >= 0; i--) {
+                if (maxScope >= contextStack[i].scope && contextStack[i].tag == targetTag) {
+                    return &contextStack[i];
+                }
+            }
+            return nullptr;
+        }
+
+        /**
+         * This is a simple method for checking whether a return/arg type matches
+         * with the actual type. This is used to handle inr and inl specifically
+         * along with normal types.
+         *
+         * @param target
+         * @param actual
+         * @return
+         */
+        static bool checkMatch(StoredType target, StoredType actual) {
+            if (target.tag == VisitableTag::tagTypeSumType && actual.tag == VisitableTag::tagTypeSumType) {
+                bool result = true;
+                for (int j = 0; j < 2; j++) {
+                    if (target.contentTypes[j] == ST_PLACEHOLDER ||
+                        actual.contentTypes[j] == ST_PLACEHOLDER) {
+                        continue;
+                    } else {
+                        result &= checkMatch(target.contentTypes[j], actual.contentTypes[j]);
+                    }
+                }
+                return result;
+            } else {
+                return target == actual;
+            }
+        }
+
+        /**
+         * This is a simple method for checking whether a vector of return/arg types
+         * matches with the actual types. This is used to handle inr and inl specifically
+         * along with normal types.
+         *
+         * @param target
+         * @param actual
+         * @return
+         */
+        static bool checkMatch(std::vector<StoredType> target, std::vector<StoredType> actual) {
+            if (target.size() != actual.size()) {
+                return false;
+            }
+            for (int i = 0; i < target.size(); i++) {
+                if (!checkMatch(target[i], actual[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         bool isTypeAllowed(VisitableTag t) {
             // TO-DO implement extension fulfillment check
             // don't really get why would that not be caught during parsing,

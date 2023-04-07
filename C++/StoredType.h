@@ -117,13 +117,17 @@ namespace Stella {
             std::cout << "\n===============\n";
             std::cout << "Ident:      " << ident << '\n';
             std::cout << "Tag:        " << tag << '\n';
-            std::cout << "ArgTags:    ";
+            std::cout << "ArgTags:     ";
             for (int i = 0; i < argsTypes.size(); i++) {
                 std::cout << argsTypes[i].tag << " ";
             } std::cout << '\n';
-            std::cout << "ReturnTags: ";
+            std::cout << "ReturnTags:  ";
             for (int i = 0; i < returnTypes.size(); i++) {
                 std::cout << returnTypes[i].tag << " ";
+            } std::cout << '\n';
+            std::cout << "ContentTags: ";
+            for (int i = 0; i < contentTypes.size(); i++) {
+                std::cout << contentTypes[i].tag << " ";
             } std::cout << '\n';
             std::cout << "\n===============\n";
         }

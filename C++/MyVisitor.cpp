@@ -29,21 +29,7 @@
 
 namespace Stella
 {
-    bool operator== (std::vector<StoredType> &a, std::vector<StoredType> &b) {
-        if (a.size() != b.size()) {
-            return false;
-        }
-        for (int i = 0; i < a.size(); i++) {
-            if (a[i] != b[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
 
-    bool operator != (std::vector<StoredType> &a, std::vector<StoredType> &b) {
-        return !(operator==(a, b));
-    }
 
     void MyVisitor::visitProgram(Program *t) {}                   // abstract class
     void MyVisitor::visitLanguageDecl(LanguageDecl *t) {}         // abstract class
@@ -125,7 +111,7 @@ namespace Stella
         resolveIdents(actualReturnsStart);
         std::vector <StoredType> actualReturns(contextStack.begin() + actualReturnsStart, contextStack.end());
 
-        if (actualReturns != returnTypes) {
+        if (!checkMatch(returnTypes, actualReturns)) {
             /*std::cout << actualReturns.size() << '\n';
             for (int i = 0; i < actualReturns.size(); i++) {
                 actualReturns[i].print();
@@ -275,7 +261,7 @@ namespace Stella
             exit(1);
         }
 
-        if (returnType1 != returnType2) {
+        if (!checkMatch(returnType1, returnType2)) {
             std::cout << "returned types of if do not match at " << if_->line_number << ":" << if_->char_number << '\n';
             exit(1);
         }
@@ -437,9 +423,37 @@ namespace Stella
     {
         /* Code For Match Goes Here */
 
-        if (match->expr_) match->expr_->accept(this);
-        if (match->listmatchcase_) match->listmatchcase_->accept(this);
+        std::cout << "Visiting Match at " << match->line_number << ":" << match->char_number << '\n';
 
+        increaseScope();
+
+        int startSize = contextStack.size();
+
+        // Toss the match target on top of the stack.
+        if (match->expr_) match->expr_->accept(this);
+        resolveIdents(startSize);
+
+        int matchesSize = contextStack.size();
+        if (match->listmatchcase_) {
+            if (match->listmatchcase_->size() > 2) {
+                std::cout << "Too many match cases in match declared at line " << match->line_number << ':' << match->char_number << '\n';
+                exit(1);
+            }
+            match->listmatchcase_->accept(this);
+        }
+
+        std::vector <StoredType> obtained(contextStack.begin() + matchesSize, contextStack.end());
+        StoredType result = collapseTypes(obtained);
+
+        if (result == ST_PLACEHOLDER) {
+            std::cout << "Mismatch of items in Match construction at " << match->line_number << ":" << match->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+        contextStack.push_back(result);
+
+        decreaseScope();
     }
 
     void MyVisitor::visitList(List *list)
@@ -447,7 +461,6 @@ namespace Stella
         /* Code For List Goes Here */
 
         if (list->listexpr_) list->listexpr_->accept(this);
-
     }
 
     void MyVisitor::visitAdd(Add *add)
@@ -531,7 +544,7 @@ namespace Stella
         resolveIdents(argListStart);
         std::vector <StoredType> argStack(contextStack.begin() + argListStart, contextStack.end());
 
-        if (argStack != function.argsTypes) {
+        if (!checkMatch(function.argsTypes, argStack)) {
             std::cout << "Argument type mismatch at application at "
                       << application->line_number << ":"
                       << application->char_number << '\n';
@@ -584,16 +597,42 @@ namespace Stella
     {
         /* Code For Inl Goes Here */
 
+        int startSize = contextStack.size();
         if (inl->expr_)
             inl->expr_->accept(this);
+        resolveIdents(startSize);
+        std::vector <StoredType> obtained(contextStack.begin() + startSize, contextStack.end());
+        if (obtained.size() != 1) {
+            std::cout << "Amount of items in Inl is not 1 at " << inl->line_number << ':' << inl->char_number << '\n';
+            exit(1);
+        }
+
+        StoredType result = ST_SUMTYPE;
+        result.contentTypes[0] = obtained.back();
+
+        cutContextStack(startSize);
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitInr(Inr *inr)
     {
         /* Code For Inr Goes Here */
 
+        int startSize = contextStack.size();
         if (inr->expr_)
             inr->expr_->accept(this);
+        resolveIdents(startSize);
+        std::vector <StoredType> obtained(contextStack.begin() + startSize, contextStack.end());
+        if (obtained.size() != 1) {
+            std::cout << "Amount of items in Inl is not 1 at " << inr->line_number << ':' << inr->char_number << '\n';
+            exit(1);
+        }
+
+        StoredType result = ST_SUMTYPE;
+        result.contentTypes[1] = obtained.back();
+
+        cutContextStack(startSize);
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitSucc(Succ *succ)
@@ -677,7 +716,7 @@ namespace Stella
                                                        z)
                                          });
 
-        if (s.size() != 1 || s.back() != expected) {
+        if (s.size() != 1 || !checkMatch(expected, s.back())) {
             std::cout << "Type mismatch between Z and S in Nat::rec at " << nat_rec->line_number << ":" << nat_rec->char_number << '\n';
             exit(1);
         }
@@ -821,9 +860,17 @@ namespace Stella
     {
         /* Code For AMatchCase Goes Here */
 
+        std::cout << "Visiting AMatchCase at " << a_match_case->line_number << ":" << a_match_case->char_number << '\n';
+
+        increaseScope();
+        // Adding idents to ident map.
+        int startSize = contextStack.size();
         if (a_match_case->pattern_) a_match_case->pattern_->accept(this);
+        cutContextStack(startSize);
+
         if (a_match_case->expr_) a_match_case->expr_->accept(this);
 
+        decreaseScope();
     }
 
     void MyVisitor::visitNoTyping(NoTyping *no_typing)
@@ -875,21 +922,57 @@ namespace Stella
     {
         /* Code For PatternInl Goes Here */
 
+        std::cout << "Visiting PatternInl at " << pattern_inl->line_number << ":" << pattern_inl->char_number << '\n';
+
+        int startSize = contextStack.size();
         if (pattern_inl->pattern_)
             pattern_inl->pattern_->accept(this);
+        std::vector <StoredType> new_idents(contextStack.begin() + startSize, contextStack.end());
+
+        if (new_idents.size() != 1) {
+            std::cout << "Too many idents at PatternInl at " << pattern_inl->line_number << ':' << pattern_inl->char_number << '\n';
+            exit(1);
+        }
+
+        StoredType *targetSumType = getTopTag(VisitableTag::tagTypeSumType, current_scope - 1);
+        StoredType result = targetSumType->contentTypes[0];
+        result.scope = current_scope;
+        result.ident = new_idents[0].ident;
+
+        identMap[result.ident].push_back(result);
+
+        cutContextStack(startSize);
     }
 
     void MyVisitor::visitPatternInr(PatternInr *pattern_inr)
     {
         /* Code For PatternInr Goes Here */
 
+        int startSize = contextStack.size();
         if (pattern_inr->pattern_)
             pattern_inr->pattern_->accept(this);
+        std::vector <StoredType> new_idents(contextStack.begin() + startSize, contextStack.end());
+
+        if (new_idents.size() != 1) {
+            std::cout << "Too many idents at PatternInr at " << pattern_inr->line_number << ':' << pattern_inr->char_number << '\n';
+            exit(1);
+        }
+
+        StoredType *targetSumType = getTopTag(VisitableTag::tagTypeSumType, current_scope - 1);
+        StoredType result = targetSumType->contentTypes[1];
+        result.scope = current_scope;
+        result.ident = new_idents[0].ident;
+
+        identMap[result.ident].push_back(result);
+
+        cutContextStack(startSize);
     }
 
     void MyVisitor::visitPatternVariant(PatternVariant *pattern_variant)
     {
         /* Code For PatternVariant Goes Here */
+
+        std::cout << "Visiting PatternVariant at " << pattern_variant->line_number << ':' << pattern_variant->char_number << '\n';
 
         visitStellaIdent(pattern_variant->stellaident_);
         if (pattern_variant->patterndata_) pattern_variant->patterndata_->accept(this);
@@ -968,6 +1051,8 @@ namespace Stella
     {
         /* Code For PatternVar Goes Here */
 
+        std::cout << "Visiting PatternVar " << pattern_var->stellaident_ << " at " << pattern_var->line_number << ":" << pattern_var->char_number << '\n';
+
         visitStellaIdent(pattern_var->stellaident_);
 
     }
@@ -1029,9 +1114,18 @@ namespace Stella
     {
         /* Code For TypeSum Goes Here */
 
+        int startSize = contextStack.size();
         if (type_sum->type_1) type_sum->type_1->accept(this);
         if (type_sum->type_2) type_sum->type_2->accept(this);
+        std::vector <StoredType> content(contextStack.begin() + startSize, contextStack.end());
 
+        cutContextStack(startSize);
+
+        StoredType result = ST_SUMTYPE;
+        result.contentTypes = content;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTypeTuple(TypeTuple *type_tuple)
@@ -1228,6 +1322,8 @@ namespace Stella
 
     void MyVisitor::visitListMatchCase(ListMatchCase *list_match_case)
     {
+        std::cout << "Visiting ListMatchCase of size " << list_match_case->size() << '\n';
+
         for (ListMatchCase::iterator i = list_match_case->begin() ; i != list_match_case->end() ; ++i)
         {
             (*i)->accept(this);
