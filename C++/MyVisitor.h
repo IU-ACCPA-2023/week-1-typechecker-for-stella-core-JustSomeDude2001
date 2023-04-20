@@ -221,7 +221,6 @@ namespace Stella {
         }
 
         void visitProgram(Program *p);
-
         void visitLanguageDecl(LanguageDecl *p);
         void visitExtension(Extension *p);
         void visitDecl(Decl *p);
@@ -248,6 +247,8 @@ namespace Stella {
         void visitAnExtension(AnExtension *p);
         void visitDeclFun(DeclFun *p);
         void visitDeclTypeAlias(DeclTypeAlias *p);
+        void visitDeclExceptionType(DeclExceptionType *p);
+        void visitDeclExceptionVariant(DeclExceptionVariant *p);
         void visitALocalDecl(ALocalDecl *p);
         void visitInlineAnnotation(InlineAnnotation *p);
         void visitAParamDecl(AParamDecl *p);
@@ -278,6 +279,7 @@ namespace Stella {
         void visitALabelledPattern(ALabelledPattern *p);
         void visitABinding(ABinding *p);
         void visitSequence(Sequence *p);
+        void visitAssign(Assign *p);
         void visitIf(If *p);
         void visitLet(Let *p);
         void visitLetRec(LetRec *p);
@@ -289,6 +291,7 @@ namespace Stella {
         void visitEqual(Equal *p);
         void visitNotEqual(NotEqual *p);
         void visitTypeAsc(TypeAsc *p);
+        void visitTypeCast(TypeCast *p);
         void visitAbstraction(Abstraction *p);
         void visitVariant(Variant *p);
         void visitMatch(Match *p);
@@ -299,6 +302,8 @@ namespace Stella {
         void visitMultiply(Multiply *p);
         void visitDivide(Divide *p);
         void visitLogicAnd(LogicAnd *p);
+        void visitRef(Ref *p);
+        void visitDeref(Deref *p);
         void visitApplication(Application *p);
         void visitDotRecord(DotRecord *p);
         void visitDotTuple(DotTuple *p);
@@ -308,6 +313,10 @@ namespace Stella {
         void visitHead(Head *p);
         void visitIsEmpty(IsEmpty *p);
         void visitTail(Tail *p);
+        void visitPanic(Panic *p);
+        void visitThrow(Throw *p);
+        void visitTryCatch(TryCatch *p);
+        void visitTryWith(TryWith *p);
         void visitInl(Inl *p);
         void visitInr(Inr *p);
         void visitSucc(Succ *p);
@@ -322,6 +331,7 @@ namespace Stella {
         void visitConstFalse(ConstFalse *p);
         void visitConstUnit(ConstUnit *p);
         void visitConstInt(ConstInt *p);
+        void visitConstMemory(ConstMemory *p);
         void visitVar(Var *p);
         void visitTypeFun(TypeFun *p);
         void visitTypeRec(TypeRec *p);
@@ -333,6 +343,9 @@ namespace Stella {
         void visitTypeBool(TypeBool *p);
         void visitTypeNat(TypeNat *p);
         void visitTypeUnit(TypeUnit *p);
+        void visitTypeTop(TypeTop *p);
+        void visitTypeBottom(TypeBottom *p);
+        void visitTypeRef(TypeRef *p);
         void visitTypeVar(TypeVar *p);
         void visitAVariantFieldType(AVariantFieldType *p);
         void visitARecordFieldType(ARecordFieldType *p);
@@ -361,5 +374,6 @@ namespace Stella {
         void visitIdent(Ident x);
         void visitStellaIdent(StellaIdent x);
         void visitExtensionName(ExtensionName x);
+        void visitMemoryAddress(MemoryAddress x);
     };
 }
