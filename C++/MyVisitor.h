@@ -132,7 +132,34 @@ namespace Stella {
                 }
                 return result;
             } else {
-                return target == actual;
+                if (target.tag != actual.tag) {
+                    return false;
+                }
+                if (target.contentTypes.size() != actual.contentTypes.size()) {
+                    return false;
+                }
+                if (target.argsTypes.size() != actual.argsTypes.size()) {
+                    return false;
+                }
+                if (target.returnTypes.size() != actual.returnTypes.size()) {
+                    return false;
+                }
+                for (int i = 0; i < target.contentTypes.size(); i++) {
+                    if (!checkMatch(target.contentTypes[i], actual.contentTypes[i])) {
+                        return false;
+                    }
+                }
+                for (int i = 0; i < target.argsTypes.size(); i++) {
+                    if (!checkMatch(target.argsTypes[i], actual.argsTypes[i])) {
+                        return false;
+                    }
+                }
+                for (int i = 0; i < target.returnTypes.size(); i++) {
+                    if (!checkMatch(target.returnTypes[i], actual.returnTypes[i])) {
+                        return false;
+                    }
+                }
+                return true;
             }
         }
 

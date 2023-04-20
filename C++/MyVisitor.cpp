@@ -382,17 +382,52 @@ namespace Stella
     {
         /* Code For LessThan Goes Here */
 
+        int startSize = contextStack.size();
         if (less_than->expr_1) less_than->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
         if (less_than->expr_2) less_than->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
 
+        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+            std::cout << "Comparison mismatch at" << less_than->line_number << ":" << less_than->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_BOOL;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitLessThanOrEqual(LessThanOrEqual *less_than_or_equal)
     {
         /* Code For LessThanOrEqual Goes Here */
 
+        int startSize = contextStack.size();
         if (less_than_or_equal->expr_1) less_than_or_equal->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
         if (less_than_or_equal->expr_2) less_than_or_equal->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
+
+        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+            std::cout << "Comparison mismatch at" << less_than_or_equal->line_number << ":" << less_than_or_equal->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_BOOL;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
 
     }
 
@@ -400,26 +435,78 @@ namespace Stella
     {
         /* Code For GreaterThan Goes Here */
 
+        int startSize = contextStack.size();
         if (greater_than->expr_1) greater_than->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
         if (greater_than->expr_2) greater_than->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
+
+        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+            std::cout << "Comparison mismatch at" << greater_than->line_number << ":" << greater_than->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_BOOL;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
 
     }
 
     void MyVisitor::visitGreaterThanOrEqual(GreaterThanOrEqual *greater_than_or_equal)
     {
         /* Code For GreaterThanOrEqual Goes Here */
-
+        int startSize = contextStack.size();
         if (greater_than_or_equal->expr_1) greater_than_or_equal->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
         if (greater_than_or_equal->expr_2) greater_than_or_equal->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
 
+        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+            std::cout << "Comparison mismatch at" << greater_than_or_equal->line_number << ":" << greater_than_or_equal->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_BOOL;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitEqual(Equal *equal)
     {
         /* Code For Equal Goes Here */
 
+        int startSize = contextStack.size();
         if (equal->expr_1) equal->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
         if (equal->expr_2) equal->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
+
+        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+            std::cout << "Comparison mismatch at" << equal->line_number << ":" << equal->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_BOOL;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
 
     }
 
@@ -427,8 +514,26 @@ namespace Stella
     {
         /* Code For NotEqual Goes Here */
 
+        int startSize = contextStack.size();
         if (not_equal->expr_1) not_equal->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
         if (not_equal->expr_2) not_equal->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
+
+        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+            std::cout << "Comparison mismatch at" << not_equal->line_number << ":" << not_equal->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_BOOL;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
 
     }
 
@@ -561,27 +666,81 @@ namespace Stella
     {
         /* Code For Add Goes Here */
 
+        int startSize = contextStack.size();
         if (add->expr_1) add->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
         if (add->expr_2) add->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
 
+        if (expr1.size() != 1 || expr2.size() != 1 ||
+            !checkMatch(expr1.back(), ST_NAT), !checkMatch(expr2.back(), ST_NAT)) {
+            std::cout << "Arithmetics of non-NAT at " << add->line_number << ":" << add->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_NAT;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitSubtract(Subtract *subtract)
     {
         /* Code For Subtract Goes Here */
+        int startSize = contextStack.size();
+        if (subtract->expr_1) subtract->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
+        if (subtract->expr_2) subtract->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
 
-        if (subtract->expr_1)
-            subtract->expr_1->accept(this);
-        if (subtract->expr_2)
-            subtract->expr_2->accept(this);
+        if (expr1.size() != 1 || expr2.size() != 1 ||
+            !checkMatch(expr1.back(), ST_NAT), !checkMatch(expr2.back(), ST_NAT)) {
+            std::cout << "Arithmetics of non-NAT at " << subtract->line_number << ":" << subtract->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_NAT;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitLogicOr(LogicOr *logic_or)
     {
         /* Code For LogicOr Goes Here */
 
+
+        int startSize = contextStack.size();
         if (logic_or->expr_1) logic_or->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
         if (logic_or->expr_2) logic_or->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
+
+        if (expr1.size() != 1 || expr2.size() != 1 ||
+            !checkMatch(expr1.back(), ST_BOOL), !checkMatch(expr2.back(), ST_BOOL)) {
+            std::cout << "Boolean arithmetics of non-boolean at " << logic_or->line_number << ":" << logic_or->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_NAT;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
 
     }
 
@@ -589,8 +748,28 @@ namespace Stella
     {
         /* Code For Multiply Goes Here */
 
+
+        int startSize = contextStack.size();
         if (multiply->expr_1) multiply->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
         if (multiply->expr_2) multiply->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
+
+        if (expr1.size() != 1 || expr2.size() != 1 ||
+            !checkMatch(expr1.back(), ST_NAT), !checkMatch(expr2.back(), ST_NAT)) {
+            std::cout << "Arithmetics of non-NAT at " << multiply->line_number << ":" << multiply->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_BOOL;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
 
     }
 
@@ -598,18 +777,55 @@ namespace Stella
     {
         /* Code For Divide Goes Here */
 
-        if (divide->expr_1)
-            divide->expr_1->accept(this);
-        if (divide->expr_2)
-            divide->expr_2->accept(this);
+        int startSize = contextStack.size();
+        if (divide->expr_1) divide->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
+        if (divide->expr_2) divide->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
+
+        if (expr1.size() != 1 || expr2.size() != 1 ||
+            !checkMatch(expr1.back(), ST_NAT), !checkMatch(expr2.back(), ST_NAT)) {
+            std::cout << "Arithmetics of non-NAT at " << divide->line_number << ":" << divide->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_NAT;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitLogicAnd(LogicAnd *logic_and)
     {
         /* Code For LogicAnd Goes Here */
 
+
+        int startSize = contextStack.size();
         if (logic_and->expr_1) logic_and->expr_1->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr1(contextStack.begin() + startSize, contextStack.end());
+        int secondSize = contextStack.size();
         if (logic_and->expr_2) logic_and->expr_2->accept(this);
+        resolveIdents(secondSize);
+        std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
+
+        if (expr1.size() != 1 || expr2.size() != 1 ||
+            !checkMatch(expr1.back(), ST_BOOL), !checkMatch(expr2.back(), ST_BOOL)) {
+            std::cout << "Boolean arithmetics of non-boolean at " << logic_and->line_number << ":" << logic_and->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_BOOL;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
 
     }
 
