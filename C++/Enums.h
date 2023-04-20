@@ -13,6 +13,8 @@ namespace Stella {
         tagTypeSumType,
 
         tagTypeFunction,
-        tagTypeIdent
+        tagTypeIdent,
+
+        tagTypePanic
     };
 }

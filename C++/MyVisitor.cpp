@@ -195,6 +195,12 @@ namespace Stella
     void MyVisitor::visitPanic(Panic *panic)
     {
         /* Code For Panic Goes Here */
+        std::cout << "Visiting Panic! at " << panic->line_number << ":" << panic->char_number << '\n';
+
+        StoredType result = ST_PANIC;
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitThrow(Throw *throw_)
@@ -334,7 +340,7 @@ namespace Stella
         resolveIdents(returnType2Start);
         std::vector<StoredType> returnType2(contextStack.begin() + returnType2Start, contextStack.end());
 
-        if (condition.size() != 1 || condition.back().tag != VisitableTag::tagTypeBool) {
+        if (condition.size() != 1 || !checkMatch(condition.back(), ST_BOOL)) {
             std::cout << "conditional for if is not a boolean at " << if_->line_number << ":" << if_->char_number << '\n';
             exit(1);
         }

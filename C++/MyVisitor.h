@@ -117,6 +117,9 @@ namespace Stella {
          * @return
          */
         static bool checkMatch(StoredType target, StoredType actual) {
+            if (target.tag == VisitableTag::tagTypePanic || actual.tag == VisitableTag::tagTypePanic) {
+                return true;
+            }
             if (target.tag == VisitableTag::tagTypeSumType && actual.tag == VisitableTag::tagTypeSumType) {
                 bool result = true;
                 for (int j = 0; j < 2; j++) {

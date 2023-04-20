@@ -14,4 +14,6 @@ namespace Stella {
     const StoredType ST_UNIT = StoredType(VisitableTag::tagTypeUnit);
     const StoredType ST_TUPLE = StoredType(VisitableTag::tagTypeTuple);
     const StoredType ST_SUMTYPE = StoredType(VisitableTag::tagTypeSumType, -1, {}, {}, {ST_PLACEHOLDER, ST_PLACEHOLDER});
+
+    const StoredType ST_PANIC = StoredType(VisitableTag::tagTypePanic);
 }
