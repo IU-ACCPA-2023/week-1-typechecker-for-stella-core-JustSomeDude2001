@@ -422,11 +422,35 @@ namespace Stella
     void MyVisitor::visitLet(Let *let)
     {
         /* Code For Let Goes Here */
+        std::cout << "Visiting Let at " << let->line_number << ":" << let->char_number << '\n';
 
+        increaseScope();
+
+        int startSize = contextStack.size();
         if (let->listpatternbinding_)
             let->listpatternbinding_->accept(this);
+        std::vector <StoredType> patterns(contextStack.begin() + startSize, contextStack.end());
+
+        for (auto pattern : patterns) {
+            identMap[pattern.ident].push_back(pattern);
+        }
+
+        int exprSize = contextStack.size();
         if (let->expr_)
             let->expr_->accept(this);
+        resolveIdents(exprSize);
+        std::vector <StoredType> expr(contextStack.begin() + exprSize, contextStack.end());
+
+        if (expr.size() != 1) {
+            std::cout << "Too many or no expressions in let at " << let->line_number << ":" << let -> char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        contextStack.push_back(expr.back());
+
+        decreaseScope();
     }
 
     void MyVisitor::visitLetRec(LetRec *let_rec)
@@ -809,7 +833,7 @@ namespace Stella
 
         cutContextStack(startSize);
 
-        StoredType result = ST_NAT;
+        StoredType result = ST_BOOL;
         result.scope = current_scope;
 
         contextStack.push_back(result);
@@ -820,6 +844,7 @@ namespace Stella
     {
         /* Code For Multiply Goes Here */
 
+        std::cout << "Visiting Multiply at " << multiply->line_number << ":" << multiply->char_number << '\n';
 
         int startSize = contextStack.size();
         if (multiply->expr_1) multiply->expr_1->accept(this);
@@ -838,7 +863,7 @@ namespace Stella
 
         cutContextStack(startSize);
 
-        StoredType result = ST_BOOL;
+        StoredType result = ST_NAT;
         result.scope = current_scope;
 
         contextStack.push_back(result);
@@ -1253,6 +1278,7 @@ namespace Stella
     {
         /* Code For Var Goes Here */
 
+        std::cout << "Visiting Var at " << var->line_number << ":" << var->char_number << '\n';
         visitStellaIdent(var->stellaident_);
 
     }
@@ -1263,10 +1289,28 @@ namespace Stella
 
         std::cout << "Visiting APatternBinding at " << a_pattern_binding->line_number << ":" << a_pattern_binding->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (a_pattern_binding->pattern_)
             a_pattern_binding->pattern_->accept(this);
+        std::vector <StoredType> pattern(contextStack.begin() + startSize, contextStack.end());
+
+        int exprSize = contextStack.size();
         if (a_pattern_binding->expr_)
             a_pattern_binding->expr_->accept(this);
+        resolveIdents(exprSize);
+        std::vector <StoredType> result(contextStack.begin() + exprSize, contextStack.end());
+
+        if (pattern.size() != 1 || result.size() != 1 || pattern[0].tag != VisitableTag::tagTypeIdent) {
+            std::cout << "Bad pattern declaration at " << a_pattern_binding->line_number << ":" << a_pattern_binding->char_number << '\n';
+            exit(1);
+        }
+
+        StoredType ret = result[0];
+        ret.ident = pattern[0].ident;
+        ret.scope = current_scope;
+
+        cutContextStack(startSize);
+        contextStack.push_back(ret);
     }
 
 
