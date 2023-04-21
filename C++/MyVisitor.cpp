@@ -170,6 +170,8 @@ namespace Stella
     {
         /* Code For Assign Goes Here */
 
+        std::cout << "Visiting Assign at " << assign->line_number << ":" << assign->char_number << '\n';
+
         if (assign->expr_1)
             assign->expr_1->accept(this);
         if (assign->expr_2)
@@ -487,6 +489,8 @@ namespace Stella
     {
         /* Code For Equal Goes Here */
 
+        std::cout << "Visiting Equal at " << equal->line_number << ":" << equal->char_number << '\n';
+
         int startSize = contextStack.size();
         if (equal->expr_1) equal->expr_1->accept(this);
         resolveIdents(startSize);
@@ -604,9 +608,18 @@ namespace Stella
     void MyVisitor::visitRecord(Record *record)
     {
         /* Code For Record Goes Here */
+        std::cout << "Visiting Record at " << record->line_number << ":" << record->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (record->listbinding_) record->listbinding_->accept(this);
+        std::vector<StoredType> fields(contextStack.begin() + startSize, contextStack.end());
 
+        StoredType result = ST_RECORD;
+        result.scope = current_scope;
+        result.contentTypes = fields;
+
+        cutContextStack(startSize);
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitVariant(Variant *variant)
@@ -1058,10 +1071,33 @@ namespace Stella
     void MyVisitor::visitDotRecord(DotRecord *dot_record)
     {
         /* Code For DotRecord Goes Here */
+        std::cout << "Visiting DotRecord at " << dot_record->line_number << ":" << dot_record->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (dot_record->expr_) dot_record->expr_->accept(this);
-        visitStellaIdent(dot_record->stellaident_);
+        resolveIdents(startSize);
+        std::vector<StoredType> ident(contextStack.begin() + startSize, contextStack.end());
 
+        int dotItemSize = contextStack.size();
+        visitStellaIdent(dot_record->stellaident_);
+        std::vector<StoredType> dotItem(contextStack.begin() + dotItemSize, contextStack.end());
+
+        if (ident.size() != 1 || dotItem.size() != 1) {
+            std::cout << "Record access by dot failed at " << dot_record->line_number << ":" << dot_record->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_PLACEHOLDER;
+        for (int i = 0; i < ident[0].contentTypes.size(); i++) {
+            if (ident[0].contentTypes[i].ident == dotItem[0].ident) {
+                result = ident[0].contentTypes[i];
+            }
+        }
+
+        result.scope = current_scope;
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitDotTuple(DotTuple *dot_tuple)
@@ -1165,6 +1201,8 @@ namespace Stella
     void MyVisitor::visitAPatternBinding(APatternBinding *a_pattern_binding)
     {
         /* Code For APatternBinding Goes Here */
+
+        std::cout << "Visiting APatternBinding at " << a_pattern_binding->line_number << ":" << a_pattern_binding->char_number << '\n';
 
         if (a_pattern_binding->pattern_)
             a_pattern_binding->pattern_->accept(this);
@@ -1387,9 +1425,29 @@ namespace Stella
     {
         /* Code For ABinding Goes Here */
 
-        visitStellaIdent(a_binding->stellaident_);
-        if (a_binding->expr_) a_binding->expr_->accept(this);
+        std::cout << "Visiting ABinding at " << a_binding->line_number << ":" << a_binding->char_number << '\n';
 
+        int startSize = contextStack.size();
+        visitStellaIdent(a_binding->stellaident_);
+        std::vector<StoredType> ident(contextStack.begin() + startSize, contextStack.end());
+
+        int exprSize = contextStack.size();
+        if (a_binding->expr_) a_binding->expr_->accept(this);
+        resolveIdents(exprSize);
+        std::vector<StoredType> expr(contextStack.begin() + exprSize, contextStack.end());
+
+        if (ident.size() != 1 || expr.size() != 1) {
+            std::cout << "Broken binding at " << a_binding->line_number << ":" << a_binding->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = expr[0];
+        result.scope = current_scope;
+        result.ident = ident[0].ident;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTypeFun(TypeFun *type_fun)
@@ -1468,9 +1526,18 @@ namespace Stella
     void MyVisitor::visitTypeRecord(TypeRecord *type_record)
     {
         /* Code For TypeRecord Goes Here */
+        std::cout << "Visiting TypeRecord at " << type_record->line_number << ":" << type_record->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (type_record->listrecordfieldtype_) type_record->listrecordfieldtype_->accept(this);
+        std::vector<StoredType> fields(contextStack.begin() + startSize, contextStack.end());
 
+        StoredType result = ST_RECORD;
+        result.scope = current_scope;
+        result.contentTypes = fields;
+
+        cutContextStack(startSize);
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTypeVariant(TypeVariant *type_variant)
@@ -1563,9 +1630,25 @@ namespace Stella
     {
         /* Code For ARecordFieldType Goes Here */
 
-        visitStellaIdent(a_record_field_type->stellaident_);
-        if (a_record_field_type->type_) a_record_field_type->type_->accept(this);
+        std::cout << "Visiting ARecordFieldType at " << a_record_field_type->line_number << ':' << a_record_field_type->char_number << '\n';
 
+        int startSize = contextStack.size();
+        visitStellaIdent(a_record_field_type->stellaident_);
+        std::vector<StoredType> ident(contextStack.begin() + startSize, contextStack.end());
+
+        int typeSize = contextStack.size();
+        if (a_record_field_type->type_) a_record_field_type->type_->accept(this);
+        std::vector <StoredType> type(contextStack.begin() + typeSize, contextStack.end());
+
+        cutContextStack(startSize);
+
+        if (ident.size() != 1 || type.size() != 1) {
+            std::cout << "Too many types or idents for record field type at " << a_record_field_type->line_number << ':' << a_record_field_type->char_number << '\n';
+            exit(1);
+        }
+
+        type[0].ident = ident[0].ident;
+        contextStack.push_back(type[0]);
     }
 
     void MyVisitor::visitATyping(ATyping *a_typing)
@@ -1683,6 +1766,7 @@ namespace Stella
 
     void MyVisitor::visitListBinding(ListBinding *list_binding)
     {
+        std::cout << "Visiting ListBinding of size " << list_binding->size() << '\n';
         for (ListBinding::iterator i = list_binding->begin() ; i != list_binding->end() ; ++i)
         {
             (*i)->accept(this);

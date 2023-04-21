@@ -144,7 +144,13 @@ namespace Stella {
                 if (target.returnTypes.size() != actual.returnTypes.size()) {
                     return false;
                 }
+                bool isRecord = (target.tag == VisitableTag::tagTypeRecord);
                 for (int i = 0; i < target.contentTypes.size(); i++) {
+                    if (isRecord) {
+                        if (target.contentTypes[i].ident != actual.contentTypes[i].ident) {
+                            return false;
+                        }
+                    }
                     if (!checkMatch(target.contentTypes[i], actual.contentTypes[i])) {
                         return false;
                     }

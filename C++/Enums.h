@@ -15,6 +15,10 @@ namespace Stella {
         tagTypeFunction,
         tagTypeIdent,
 
-        tagTypePanic
+        tagTypePanic,
+
+        tagTypeRecord,
+
+        tagTypeRef
     };
 }
