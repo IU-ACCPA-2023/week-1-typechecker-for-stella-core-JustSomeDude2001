@@ -172,26 +172,74 @@ namespace Stella
 
         std::cout << "Visiting Assign at " << assign->line_number << ":" << assign->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (assign->expr_1)
             assign->expr_1->accept(this);
         if (assign->expr_2)
             assign->expr_2->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> items(contextStack.begin() + startSize, contextStack.end());
+
+        if (items.size() != 2 || items[0].tag != tagTypeRef ||
+            !checkMatch(items[0].contentTypes[0], items[1])) {
+            std::cout << "Failed Assign due to type mismatch or too many items at " << assign->line_number << ":" << assign->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_UNIT;
+        result.scope = current_scope;
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitRef(Ref *ref)
     {
         /* Code For Ref Goes Here */
+        std::cout << "Visiting Ref at " << ref->line_number << ":" << ref->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (ref->expr_)
             ref->expr_->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> target(contextStack.begin() + startSize, contextStack.end());
+
+        if (target.size() != 1) {
+            std::cout << "No item to reference or multi-item reference at " << ref->line_number << ":" << ref->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_REF;
+        result.scope = current_scope;
+        result.contentTypes[0] = target[0];
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitDeref(Deref *deref)
     {
         /* Code For Deref Goes Here */
+        std::cout << "Visiting Deref at " << deref->line_number << ":" << deref->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (deref->expr_)
             deref->expr_->accept(this);
+        resolveIdents(startSize);
+        std::vector <StoredType> ref(contextStack.begin() + startSize, contextStack.end());
+
+        if (ref.size() != 1) {
+            std::cout << "Too many items dereferenced at " << deref->line_number << ":" << deref->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ref[0].contentTypes[0];
+        result.scope = current_scope;
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitPanic(Panic *panic)
@@ -312,11 +360,22 @@ namespace Stella
     void MyVisitor::visitSequence(Sequence *sequence)
     {
         /* Code For Sequence Goes Here */
+        std::cout << "Visiting Sequence at " << sequence->line_number << ":" << sequence->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (sequence->expr_1)
             sequence->expr_1->accept(this);
         if (sequence->expr_2)
             sequence->expr_2->accept(this);
+        std::vector<StoredType> exprs(contextStack.begin() + startSize, contextStack.end());
+        cutContextStack(startSize);
+
+        if (exprs.empty()) {
+            std::cout << "No items in sequence at " << sequence->line_number << ":" << sequence->char_number << '\n';
+            exit(1);
+        }
+
+        contextStack.push_back(exprs.back());
     }
 
     void MyVisitor::visitIf(If *if_)
@@ -1604,9 +1663,25 @@ namespace Stella
     void MyVisitor::visitTypeRef(TypeRef *type_ref)
     {
         /* Code For TypeRef Goes Here */
+        std::cout << "Visiting TypeRef at " << type_ref->line_number << ":" << type_ref->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (type_ref->type_)
             type_ref->type_->accept(this);
+        std::vector<StoredType> type(contextStack.begin() + startSize, contextStack.end());
+
+        if (type.size() != 1) {
+            std::cout << "Multiple types of ref at " << type_ref->line_number << ":" << type_ref->char_number << '\n';
+            exit(1);
+        }
+
+        cutContextStack(startSize);
+
+        StoredType result = ST_REF;
+        result.scope = current_scope;
+        result.contentTypes[0] = type[0];
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTypeVar(TypeVar *type_var)
