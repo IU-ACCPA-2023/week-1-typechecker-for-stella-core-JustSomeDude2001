@@ -116,7 +116,8 @@ namespace Stella {
          * @param actual
          * @return
          */
-        static bool checkMatch(StoredType target, StoredType actual) {
+        static bool checkMatch(StoredType target, StoredType actual,
+                               bool allowTargetSubtype = true, bool allowActualSubtype = true) {
             if (target.tag == VisitableTag::tagTypePanic || actual.tag == VisitableTag::tagTypePanic) {
                 return true;
             }
@@ -127,15 +128,13 @@ namespace Stella {
                         actual.contentTypes[j] == ST_PLACEHOLDER) {
                         continue;
                     } else {
-                        result &= checkMatch(target.contentTypes[j], actual.contentTypes[j]);
+                        result &= checkMatch(target.contentTypes[j], actual.contentTypes[j],
+                                             allowTargetSubtype, allowActualSubtype);
                     }
                 }
                 return result;
             } else {
                 if (target.tag != actual.tag) {
-                    return false;
-                }
-                if (target.contentTypes.size() != actual.contentTypes.size()) {
                     return false;
                 }
                 if (target.argsTypes.size() != actual.argsTypes.size()) {
@@ -145,23 +144,69 @@ namespace Stella {
                     return false;
                 }
                 bool isRecord = (target.tag == VisitableTag::tagTypeRecord);
-                for (int i = 0; i < target.contentTypes.size(); i++) {
-                    if (isRecord) {
-                        if (target.contentTypes[i].ident != actual.contentTypes[i].ident) {
+
+                if (isRecord) {
+                    bool actualIsSubtype = true;
+                    bool targetIsSubtype = true;
+                    for (auto j : actual.contentTypes) {
+                        bool foundMatch = false;
+                        for (auto i : target.contentTypes) {
+                            if (i.ident == j.ident && checkMatch(i, j,
+                                                                 allowTargetSubtype, allowActualSubtype)) {
+                                foundMatch = true;
+                                break;
+                            }
+                        }
+                        if (!foundMatch) {
+                            targetIsSubtype = false;
+                            break;
+                        }
+                    }
+                    for (auto i : target.contentTypes) {
+                        bool foundMatch = false;
+                        for (auto j : actual.contentTypes) {
+                            if (i.ident == j.ident && checkMatch(i, j,
+                                                                 allowTargetSubtype, allowActualSubtype)) {
+                                foundMatch = true;
+                                break;
+                            }
+                        }
+                        if (!foundMatch) {
+                            actualIsSubtype = false;
+                            break;
+                        }
+                    }
+
+                    if (!actualIsSubtype && !targetIsSubtype) {
+                        return false;
+                    }
+                    if (!allowActualSubtype && actualIsSubtype && !targetIsSubtype) {
+                        return false;
+                    }
+                    if (!allowTargetSubtype && targetIsSubtype && !actualIsSubtype) {
+                        return false;
+                    }
+
+                } else {
+                    if (target.contentTypes.size() != actual.contentTypes.size()) {
+                        return false;
+                    }
+                    for (int i = 0; i < target.contentTypes.size(); i++) {
+                        if (!checkMatch(target.contentTypes[i], actual.contentTypes[i],
+                                        allowTargetSubtype, allowActualSubtype)) {
                             return false;
                         }
                     }
-                    if (!checkMatch(target.contentTypes[i], actual.contentTypes[i])) {
-                        return false;
-                    }
                 }
                 for (int i = 0; i < target.argsTypes.size(); i++) {
-                    if (!checkMatch(target.argsTypes[i], actual.argsTypes[i])) {
+                    if (!checkMatch(target.argsTypes[i], actual.argsTypes[i],
+                                    allowTargetSubtype, allowActualSubtype)) {
                         return false;
                     }
                 }
                 for (int i = 0; i < target.returnTypes.size(); i++) {
-                    if (!checkMatch(target.returnTypes[i], actual.returnTypes[i])) {
+                    if (!checkMatch(target.returnTypes[i], actual.returnTypes[i],
+                                    allowTargetSubtype, allowActualSubtype)) {
                         return false;
                     }
                 }
@@ -178,12 +223,13 @@ namespace Stella {
          * @param actual
          * @return
          */
-        static bool checkMatch(std::vector<StoredType> target, std::vector<StoredType> actual) {
+        static bool checkMatch(std::vector<StoredType> target, std::vector<StoredType> actual,
+                               bool allowTargetSubtype = true, bool allowActualSubtype = true) {
             if (target.size() != actual.size()) {
                 return false;
             }
             for (int i = 0; i < target.size(); i++) {
-                if (!checkMatch(target[i], actual[i])) {
+                if (!checkMatch(target[i], actual[i], allowTargetSubtype, allowActualSubtype)) {
                     return false;
                 }
             }

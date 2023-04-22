@@ -930,7 +930,7 @@ namespace Stella
     void MyVisitor::visitApplication(Application *application)
     {
         /* Code For Application Goes Here */
-        std::cout << "Visiting Applicaton at " << application->line_number << ":" << application->char_number << '\n';
+        std::cout << "Visiting Application at " << application->line_number << ":" << application->char_number << '\n';
 
         increaseScope();
 
@@ -951,11 +951,29 @@ namespace Stella
         resolveIdents(argListStart);
         std::vector <StoredType> argStack(contextStack.begin() + argListStart, contextStack.end());
 
-        if (!checkMatch(function.argsTypes, argStack)) {
-            std::cout << "Argument type mismatch at application at "
+        if (function.argsTypes.size() != argStack.size()) {
+            std::cout << "Argument amount mismatch at application at "
                       << application->line_number << ":"
                       << application->char_number << '\n';
             exit(1);
+        }
+
+        for (int i = 0; i < function.argsTypes.size(); i++) {
+            if (argStack[i].tag == VisitableTag::tagTypeFunction) {
+                if (!checkMatch(function.argsTypes[i], argStack[i], true, false)) {
+                    std::cout << "Argument type mismatch at application at "
+                              << application->line_number << ":"
+                              << application->char_number << '\n';
+                    exit(1);
+                }
+            } else {
+                if (!checkMatch(function.argsTypes, argStack, false, true)) {
+                    std::cout << "Argument type mismatch at application at "
+                              << application->line_number << ":"
+                              << application->char_number << '\n';
+                    exit(1);
+                }
+            }
         }
 
         decreaseScope();
