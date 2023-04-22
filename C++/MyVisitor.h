@@ -112,36 +112,43 @@ namespace Stella {
          * with the actual type. This is used to handle inr and inl specifically
          * along with normal types.
          *
+         * It uses bitmasks
+         * 00 = 0 = items are not subtypes of each other.
+         * 01 = 1 = target is subtype
+         * 10 = 2 = actual is subtype
+         * 11 = 3 = both subtypes of each other and are equal
+         *
          * @param target
          * @param actual
          * @return
          */
-        static bool checkMatch(StoredType target, StoredType actual,
-                               bool allowTargetSubtype = true, bool allowActualSubtype = true) {
+        static int checkMatch(StoredType target, StoredType actual) {
             if (target.tag == VisitableTag::tagTypePanic || actual.tag == VisitableTag::tagTypePanic) {
-                return true;
+                return 3;
             }
             if (target.tag == VisitableTag::tagTypeSumType && actual.tag == VisitableTag::tagTypeSumType) {
-                bool result = true;
+                int result = 3;
                 for (int j = 0; j < 2; j++) {
                     if (target.contentTypes[j] == ST_PLACEHOLDER ||
                         actual.contentTypes[j] == ST_PLACEHOLDER) {
                         continue;
                     } else {
-                        result &= checkMatch(target.contentTypes[j], actual.contentTypes[j],
-                                             allowTargetSubtype, allowActualSubtype);
+                        int ret = checkMatch(target.contentTypes[j], actual.contentTypes[j]);
+                        result &= ret;
                     }
                 }
                 return result;
             } else {
+                int result = 3;
+
                 if (target.tag != actual.tag) {
-                    return false;
+                    return 0;
                 }
                 if (target.argsTypes.size() != actual.argsTypes.size()) {
-                    return false;
+                    return 0;
                 }
                 if (target.returnTypes.size() != actual.returnTypes.size()) {
-                    return false;
+                    return 0;
                 }
                 bool isRecord = (target.tag == VisitableTag::tagTypeRecord);
 
@@ -151,8 +158,8 @@ namespace Stella {
                     for (auto j : actual.contentTypes) {
                         bool foundMatch = false;
                         for (auto i : target.contentTypes) {
-                            if (i.ident == j.ident && checkMatch(i, j,
-                                                                 allowTargetSubtype, allowActualSubtype)) {
+                            int ret = checkMatch(i, j);
+                            if (i.ident == j.ident && (ret & 1)) {
                                 foundMatch = true;
                                 break;
                             }
@@ -165,8 +172,8 @@ namespace Stella {
                     for (auto i : target.contentTypes) {
                         bool foundMatch = false;
                         for (auto j : actual.contentTypes) {
-                            if (i.ident == j.ident && checkMatch(i, j,
-                                                                 allowTargetSubtype, allowActualSubtype)) {
+                            int ret = checkMatch(i, j);
+                            if (i.ident == j.ident && (ret & 2)) {
                                 foundMatch = true;
                                 break;
                             }
@@ -177,40 +184,42 @@ namespace Stella {
                         }
                     }
 
-                    if (!actualIsSubtype && !targetIsSubtype) {
-                        return false;
+                    if (!targetIsSubtype && (result & 1)) {
+                        result -= 1;
                     }
-                    if (!allowActualSubtype && actualIsSubtype && !targetIsSubtype) {
-                        return false;
+                    if (!actualIsSubtype && (result & 2)) {
+                        result -= 2;
                     }
-                    if (!allowTargetSubtype && targetIsSubtype && !actualIsSubtype) {
-                        return false;
-                    }
-
+                    return result;
                 } else {
                     if (target.contentTypes.size() != actual.contentTypes.size()) {
-                        return false;
+                        return 0;
                     }
                     for (int i = 0; i < target.contentTypes.size(); i++) {
-                        if (!checkMatch(target.contentTypes[i], actual.contentTypes[i],
-                                        allowTargetSubtype, allowActualSubtype)) {
-                            return false;
-                        }
+                        int ret = checkMatch(target.contentTypes[i], actual.contentTypes[i]);
+                        result &= ret;
                     }
                 }
+                // argsRes and retRes inversion exist for subtyping of functions
+                int argsRes = 3;
                 for (int i = 0; i < target.argsTypes.size(); i++) {
-                    if (!checkMatch(target.argsTypes[i], actual.argsTypes[i],
-                                    allowTargetSubtype, allowActualSubtype)) {
-                        return false;
-                    }
+                    int ret = checkMatch(target.argsTypes[i], actual.argsTypes[i]);
+                    argsRes &= ret;
                 }
+                int retRes = 3;
                 for (int i = 0; i < target.returnTypes.size(); i++) {
-                    if (!checkMatch(target.returnTypes[i], actual.returnTypes[i],
-                                    allowTargetSubtype, allowActualSubtype)) {
-                        return false;
-                    }
+                    int ret = checkMatch(target.returnTypes[i], actual.returnTypes[i]);
+                    retRes &= ret;
                 }
-                return true;
+                if (argsRes == 2 || argsRes == 1) {
+                    argsRes ^= 3;
+                }
+                if (retRes == 2 || retRes == 1) {
+                    retRes ^= 3;
+                }
+                result &= argsRes;
+                result &= retRes;
+                return result;
             }
         }
 
@@ -219,21 +228,26 @@ namespace Stella {
          * matches with the actual types. This is used to handle inr and inl specifically
          * along with normal types.
          *
+         * It uses bitmasks
+         * 00 = 0 = items are not subtypes of each other.
+         * 01 = 1 = target is subtype
+         * 10 = 2 = actual is subtype
+         * 11 = 3 = both subtypes of each other and are equal
+         *
          * @param target
          * @param actual
          * @return
          */
-        static bool checkMatch(std::vector<StoredType> target, std::vector<StoredType> actual,
-                               bool allowTargetSubtype = true, bool allowActualSubtype = true) {
+        static int checkMatch(std::vector<StoredType> target, std::vector<StoredType> actual) {
             if (target.size() != actual.size()) {
-                return false;
+                return 0;
             }
+            int result = 3;
             for (int i = 0; i < target.size(); i++) {
-                if (!checkMatch(target[i], actual[i], allowTargetSubtype, allowActualSubtype)) {
-                    return false;
-                }
+                int ret = checkMatch(target[i], actual[i]);
+                result &= ret;
             }
-            return true;
+            return result;
         }
 
         bool isTypeAllowed(VisitableTag t) {

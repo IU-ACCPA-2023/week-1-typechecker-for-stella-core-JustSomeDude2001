@@ -111,7 +111,7 @@ namespace Stella
         resolveIdents(actualReturnsStart);
         std::vector <StoredType> actualReturns(contextStack.begin() + actualReturnsStart, contextStack.end());
 
-        if (!checkMatch(returnTypes, actualReturns)) {
+        if (!(checkMatch(returnTypes, actualReturns) & 2)) {
             /*std::cout << actualReturns.size() << '\n';
             for (int i = 0; i < actualReturns.size(); i++) {
                 actualReturns[i].print();
@@ -181,7 +181,7 @@ namespace Stella
         std::vector<StoredType> items(contextStack.begin() + startSize, contextStack.end());
 
         if (items.size() != 2 || items[0].tag != tagTypeRef ||
-            !checkMatch(items[0].contentTypes[0], items[1])) {
+            !(checkMatch(items[0].contentTypes[0], items[1]) & 2)) {
             std::cout << "Failed Assign due to type mismatch or too many items at " << assign->line_number << ":" << assign->char_number << '\n';
             exit(1);
         }
@@ -231,6 +231,11 @@ namespace Stella
 
         if (ref.size() != 1) {
             std::cout << "Too many items dereferenced at " << deref->line_number << ":" << deref->char_number << '\n';
+            exit(1);
+        }
+
+        if (ref[0].tag != VisitableTag::tagTypeRef) {
+            std::cout << "Dereferencing non-ref at " << deref->line_number << ":" << deref->char_number << '\n';
             exit(1);
         }
 
@@ -401,7 +406,7 @@ namespace Stella
         resolveIdents(returnType2Start);
         std::vector<StoredType> returnType2(contextStack.begin() + returnType2Start, contextStack.end());
 
-        if (condition.size() != 1 || !checkMatch(condition.back(), ST_BOOL)) {
+        if (condition.size() != 1 || !(checkMatch(condition.back(), ST_BOOL) == 3)) {
             std::cout << "conditional for if is not a boolean at " << if_->line_number << ":" << if_->char_number << '\n';
             exit(1);
         }
@@ -476,7 +481,7 @@ namespace Stella
         resolveIdents(secondSize);
         std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
 
-        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+        if (expr1.size() != 1 || expr2.size() != 1 || checkMatch(expr1, expr2) != 3 || !checkMatch(expr1, {ST_NAT})) {
             std::cout << "Comparison mismatch at" << less_than->line_number << ":" << less_than->char_number << '\n';
             exit(1);
         }
@@ -502,7 +507,7 @@ namespace Stella
         resolveIdents(secondSize);
         std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
 
-        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+        if (expr1.size() != 1 || expr2.size() != 1 || checkMatch(expr1, expr2) != 3 || !checkMatch(expr1, {ST_NAT})) {
             std::cout << "Comparison mismatch at" << less_than_or_equal->line_number << ":" << less_than_or_equal->char_number << '\n';
             exit(1);
         }
@@ -529,7 +534,7 @@ namespace Stella
         resolveIdents(secondSize);
         std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
 
-        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+        if (expr1.size() != 1 || expr2.size() != 1 || checkMatch(expr1, expr2) != 3 || !checkMatch(expr1, {ST_NAT})) {
             std::cout << "Comparison mismatch at" << greater_than->line_number << ":" << greater_than->char_number << '\n';
             exit(1);
         }
@@ -555,7 +560,7 @@ namespace Stella
         resolveIdents(secondSize);
         std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
 
-        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+        if (expr1.size() != 1 || expr2.size() != 1 || checkMatch(expr1, expr2) != 3 || !checkMatch(expr1, {ST_NAT})) {
             std::cout << "Comparison mismatch at" << greater_than_or_equal->line_number << ":" << greater_than_or_equal->char_number << '\n';
             exit(1);
         }
@@ -583,7 +588,7 @@ namespace Stella
         resolveIdents(secondSize);
         std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
 
-        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+        if (expr1.size() != 1 || expr2.size() != 1 || checkMatch(expr1, expr2) != 3) {
             std::cout << "Comparison mismatch at" << equal->line_number << ":" << equal->char_number << '\n';
             exit(1);
         }
@@ -610,7 +615,7 @@ namespace Stella
         resolveIdents(secondSize);
         std::vector<StoredType> expr2(contextStack.begin() + secondSize, contextStack.end());
 
-        if (expr1.size() != 1 || expr2.size() != 1 || !checkMatch(expr1, expr2)) {
+        if (expr1.size() != 1 || expr2.size() != 1 || checkMatch(expr1, expr2) != 3) {
             std::cout << "Comparison mismatch at" << not_equal->line_number << ":" << not_equal->char_number << '\n';
             exit(1);
         }
@@ -958,12 +963,21 @@ namespace Stella
             exit(1);
         }
 
+        /*
         for (int i = 0; i < function.argsTypes.size(); i++) {
             if (argStack[i].tag == VisitableTag::tagTypeFunction) {
                 if (!checkMatch(function.argsTypes[i], argStack[i], true, false)) {
                     std::cout << "Argument type mismatch at application at "
                               << application->line_number << ":"
                               << application->char_number << '\n';
+                    std::cout << "argsTypes:\n";
+                    for (auto i : function.argsTypes[0].argsTypes[0].argsTypes[0].contentTypes) {
+                        i.print();
+                    }
+                    std::cout << "argStack:\n";
+                    for (auto i :          argStack[0].argsTypes[0].argsTypes[0].contentTypes) {
+                        i.print();
+                    }
                     exit(1);
                 }
             } else {
@@ -974,6 +988,22 @@ namespace Stella
                     exit(1);
                 }
             }
+        }
+        */
+
+        if (!(checkMatch(function.argsTypes, argStack) & 2)) {
+            std::cout << "Argument type mismatch at application at "
+                      << application->line_number << ":"
+                      << application->char_number << '\n';
+            /*std::cout << "argsTypes:\n";
+            for (auto i : function.argsTypes) {
+                i.print();
+            }
+            std::cout << "argStack:\n";
+            for (auto i : argStack) {
+                i.print();
+            }*/
+            exit(1);
         }
 
         decreaseScope();
@@ -1141,7 +1171,7 @@ namespace Stella
                                                        z)
                                          });
 
-        if (s.size() != 1 || !checkMatch(expected, s.back())) {
+        if (s.size() != 1 || !(checkMatch(expected, s.back()) & 2)) {
             std::cout << "Type mismatch between Z and S in Nat::rec at " << nat_rec->line_number << ":" << nat_rec->char_number << '\n';
             exit(1);
         }
