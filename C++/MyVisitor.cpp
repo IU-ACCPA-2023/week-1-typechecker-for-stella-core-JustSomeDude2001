@@ -370,6 +370,11 @@ namespace Stella
         int startSize = contextStack.size();
         if (sequence->expr_1)
             sequence->expr_1->accept(this);
+        resolveIdents(startSize);
+        if (!checkMatch(ST_UNIT, contextStack.back())) {
+            std::cout << "First item in sequence is non-unit at " << sequence->line_number << ":" << sequence->char_number << '\n';
+            exit(1);
+        }
         if (sequence->expr_2)
             sequence->expr_2->accept(this);
         std::vector<StoredType> exprs(contextStack.begin() + startSize, contextStack.end());
