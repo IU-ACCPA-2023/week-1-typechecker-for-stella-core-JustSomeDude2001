@@ -1,3 +1,7 @@
+# NOTE:
+Repo with full commit history is on week 1:
+https://github.com/IU-ACCPA-2023/week-1-typechecker-for-stella-core-JustSomeDude2001
+
 # C++ stella-implementation-assignment
 
 This is the skeleton for a C++ implementation of the Stella programming language interpreter.
