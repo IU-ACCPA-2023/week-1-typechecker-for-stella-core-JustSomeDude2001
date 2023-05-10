@@ -95,12 +95,12 @@ namespace Stella
 
         int paramsStart = contextStack.size();
         if (decl_fun->listparamdecl_) decl_fun->listparamdecl_->accept(this);
-        //resolveIdents(paramsStart);
+        resolveIdents(paramsStart);
         std::vector <StoredType> params(contextStack.begin() + paramsStart, contextStack.end());
 
         int returnTypesStart = contextStack.size();
         if (decl_fun->returntype_) decl_fun->returntype_->accept(this);
-        //resolveIdents(returnTypesStart);
+        resolveIdents(returnTypesStart);
         std::vector <StoredType> returnTypes(contextStack.begin() + returnTypesStart, contextStack.end());
 
         if (decl_fun->throwtype_) decl_fun->throwtype_->accept(this);
@@ -316,6 +316,12 @@ namespace Stella
             a_param_decl->type_->accept(this);
 
             StoredType result = contextStack.back();
+
+            if (result.tag == VisitableTag::tagTypeIdent) {
+                std::cout << "Resolved generic type\n";
+                result = identMap[result.ident].back();
+            }
+
             result.ident = contextStack[index_ident].ident;
 
             identMap[result.ident].push_back(result);
@@ -661,7 +667,7 @@ namespace Stella
 
         int startSize = contextStack.size();
         if (abstraction->listparamdecl_) abstraction->listparamdecl_->accept(this);
-        //resolveIdents(startSize);
+        resolveIdents(startSize);
         std::vector <StoredType> argsTypes(contextStack.begin() + startSize, contextStack.end());
 
         int returnTypesStart = contextStack.size();
@@ -1000,14 +1006,15 @@ namespace Stella
             std::cout << "Argument type mismatch at application at "
                       << application->line_number << ":"
                       << application->char_number << '\n';
-            /*std::cout << "argsTypes:\n";
+            function.print();
+            std::cout << "argsTypes:\n";
             for (auto i : function.argsTypes) {
                 i.print();
             }
             std::cout << "argStack:\n";
             for (auto i : argStack) {
                 i.print();
-            }*/
+            }
             exit(1);
         }
 
@@ -1614,12 +1621,12 @@ namespace Stella
 
         int startSize = contextStack.size();
         if (type_fun->listtype_) type_fun->listtype_->accept(this);
-        //resolveIdents(startSize);
+        resolveIdents(startSize);
         std::vector<StoredType> argsTypes(contextStack.begin() + startSize, contextStack.end());
 
         int returnTypesStart = contextStack.size();
         if (type_fun->type_) type_fun->type_->accept(this);
-        //resolveIdents(returnTypesStart);
+        resolveIdents(returnTypesStart);
         std::vector<StoredType> returnTypes(contextStack.begin() + returnTypesStart, contextStack.end());
 
         StoredType result = ST_FUN;
@@ -1784,6 +1791,8 @@ namespace Stella
     void MyVisitor::visitTypeVar(TypeVar *type_var)
     {
         /* Code For TypeVar Goes Here */
+
+        std::cout << "Visiting TypeVar at " << type_var->line_number << ":" << type_var->char_number << '\n';
 
         visitStellaIdent(type_var->stellaident_);
 
@@ -2028,51 +2037,184 @@ namespace Stella
     {
         /* Code For DeclFunGeneric Goes Here */
 
+        std::cout << "Visiting DeclFunGeneric at " << decl_fun_generic->line_number << ":" << decl_fun_generic->char_number << '\n';
+        std::cout << "=======================\n";
+
+        int startSize = contextStack.size();
+        std::cout << "LISTANNOTATION:\n";
         if (decl_fun_generic->listannotation_)
             decl_fun_generic->listannotation_->accept(this);
+        cutContextStack(startSize);
+
+        std::string ident;
+        std::cout << "STELLAIDENT:\n";
         visitStellaIdent(decl_fun_generic->stellaident_);
+        ident = contextStack.back().ident;
+        cutContextStack(startSize);
+
+        increaseScope();
+
+        std::cout << "LISTSTELLAIDENT:\n";
         if (decl_fun_generic->liststellaident_)
             decl_fun_generic->liststellaident_->accept(this);
+        std::vector<StoredType> genericIdents(contextStack.begin() + startSize, contextStack.end());
+        for (int i = 0; i < genericIdents.size(); i++) {
+            genericIdents[i].tag = VisitableTag::tagTypeGenericType;
+            genericIdents[i].typeIdent = genericIdents[i].ident;
+            identMap[genericIdents[i].ident].push_back(genericIdents[i]);
+        }
+        cutContextStack(startSize);
+
+        std::cout << "LISTPARAMDECL:\n";
         if (decl_fun_generic->listparamdecl_)
             decl_fun_generic->listparamdecl_->accept(this);
+        std::vector<StoredType> params(contextStack.begin() + startSize, contextStack.end());
+        cutContextStack(startSize);
+
+        std::cout << "RETURNTYPE_:\n";
         if (decl_fun_generic->returntype_)
             decl_fun_generic->returntype_->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> returnTypes(contextStack.begin() + startSize, contextStack.end());
+        cutContextStack(startSize);
+
+        std::cout << "THROWTYPE_:\n";
         if (decl_fun_generic->throwtype_)
             decl_fun_generic->throwtype_->accept(this);
+
+        std::cout << "LISTDECL:\n";
         if (decl_fun_generic->listdecl_)
             decl_fun_generic->listdecl_->accept(this);
+        cutContextStack(startSize);
+
+        std::cout << "EXPR_:\n";
         if (decl_fun_generic->expr_)
             decl_fun_generic->expr_->accept(this);
+        resolveIdents(startSize);
+        std::vector<StoredType> expr(contextStack.begin() + startSize, contextStack.end());
+        cutContextStack(startSize);
+
+        std::cout << "=======================\n";
+
+        if (!(checkMatch(returnTypes, expr) & 2)) {
+            std::cout << returnTypes.size() << '\n';
+            for (int i = 0; i < returnTypes.size(); i++) {
+                returnTypes[i].print();
+            }
+            std::cout << expr.size() << '\n';
+            for (int i = 0; i < expr.size(); i++) {
+                expr[i].print();
+            }
+            std::cout << "Type mismatch between expected and actual in function " << ident << " declaration at "
+                      << decl_fun_generic->line_number << ":" << decl_fun_generic->char_number << '\n';
+            exit(1);
+        }
+
+        decreaseScope();
+
+        StoredType result = ST_FUN;
+        result.ident = ident;
+        result.argsTypes = params;
+        result.returnTypes = returnTypes;
+        result.genericTypes = genericIdents;
+        result.scope = current_scope;
+
+        identMap[result.ident].push_back(result);
+
+        cutContextStack(startSize);
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTypeAbstraction(TypeAbstraction *type_abstraction)
     {
         /* Code For TypeAbstraction Goes Here */
+        std::cout << "Visiting TypeAbstraction at " << type_abstraction->line_number << ":" << type_abstraction->char_number << '\n';
 
+        std::cout << "--------\n";
+        int startSize = contextStack.size();
         if (type_abstraction->liststellaident_)
             type_abstraction->liststellaident_->accept(this);
+        std::vector<StoredType> genericIdents(contextStack.begin() + startSize, contextStack.end());
+        for (int i = 0; i < genericIdents.size(); i++) {
+            genericIdents[i].tag = VisitableTag::tagTypeGenericType;
+            genericIdents[i].typeIdent = genericIdents[i].ident;
+            identMap[genericIdents[i].ident].push_back(genericIdents[i]);
+        }
+        cutContextStack(startSize);
+
         if (type_abstraction->expr_)
             type_abstraction->expr_->accept(this);
+        contextStack.back().genericTypes = genericIdents;
+
+        contextStack.back().print();
+        std::cout << "--------\n";
     }
 
     void MyVisitor::visitTypeApplication(TypeApplication *type_application)
     {
         /* Code For TypeApplication Goes Here */
+        std::cout << "Visiting TypeApplication at " << type_application->line_number << ":" << type_application->char_number << '\n';
 
+        int startSize = contextStack.size();
         if (type_application->expr_)
             type_application->expr_->accept(this);
+        resolveIdents(startSize);
+        StoredType result = contextStack.back();
+        cutContextStack(startSize);
+
         if (type_application->listtype_)
             type_application->listtype_->accept(this);
+        resolveIdents(startSize);
+        std::vector <StoredType> types(contextStack.begin() + startSize, contextStack.end());
+        cutContextStack(startSize);
+
+        if (types.size() != result.genericTypes.size()) {
+            result.print();
+
+            std::cout << "Type count mismatch at " << type_application->line_number << ":" << type_application->char_number << '\n';
+            exit(1);
+        }
+
+        for (int i = 0; i < types.size(); i++) {
+            std::string target = result.genericTypes[i].typeIdent;
+            std::cout << "APPLYING " << types[i].typeIdent << " TO " << target << " NOW\n";
+            for (int j = 0; j < result.argsTypes.size(); j++) {
+                result.argsTypes[j].deepGenericApplication(target, types[i]);
+            }
+            for (int j = 0; j < result.returnTypes.size(); j++) {
+                result.returnTypes[j].deepGenericApplication(target, types[i]);
+            }
+            for (int j = 0; j < result.contentTypes.size(); j++) {
+                result.contentTypes[j].deepGenericApplication(target, types[i]);
+            }
+            //result.deepGenericApplication(result.genericTypes[i].typeIdent, types[i]);
+        }
+
+        contextStack.push_back(result);
     }
 
     void MyVisitor::visitTypeForAll(TypeForAll *type_for_all)
     {
         /* Code For TypeForAll Goes Here */
+        std::cout << "Visiting TypeForAll at " << type_for_all->line_number << ":" << type_for_all->char_number << '\n';
 
+        std::cout << "--------\n";
+        int startSize = contextStack.size();
         if (type_for_all->liststellaident_)
             type_for_all->liststellaident_->accept(this);
+        std::vector<StoredType> genericIdents(contextStack.begin() + startSize, contextStack.end());
+        for (int i = 0; i < genericIdents.size(); i++) {
+            genericIdents[i].tag = VisitableTag::tagTypeGenericType;
+            genericIdents[i].typeIdent = genericIdents[i].ident;
+            identMap[genericIdents[i].ident].push_back(genericIdents[i]);
+        }
+        cutContextStack(startSize);
+
         if (type_for_all->type_)
             type_for_all->type_->accept(this);
+        contextStack.back().genericTypes = genericIdents;
+        std::cout << "--------\n";
     }
 
 }

@@ -126,6 +126,13 @@ namespace Stella {
             if (target.tag == VisitableTag::tagTypePanic || actual.tag == VisitableTag::tagTypePanic) {
                 return 3;
             }
+            if (target.tag == VisitableTag::tagTypeGenericType && actual.tag == target.tag) {
+                if (target.typeIdent != actual.typeIdent) {
+                    return 0;
+                } else {
+                    return 3;
+                }
+            }
             if (target.tag == VisitableTag::tagTypeSumType && actual.tag == VisitableTag::tagTypeSumType) {
                 int result = 3;
                 for (int j = 0; j < 2; j++) {

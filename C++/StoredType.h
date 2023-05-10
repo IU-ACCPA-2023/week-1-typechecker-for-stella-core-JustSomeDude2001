@@ -29,9 +29,16 @@ namespace Stella {
         // ident is only relevant for when tag is tagTypeIdent.
         std::string ident = "";
 
+        // Only relevant for when dealing with generic types.
+        std::string typeIdent = "";
+        bool resolved = false;
+
         // argsTypes and returnTypes are only present in functions.
         std::vector<StoredType> argsTypes = {};
         std::vector<StoredType> returnTypes = {};
+
+        // This is used for generic functions.
+        std::vector<StoredType> genericTypes = {};
 
         // contentTypes are only present in tuples and lists.
         std::vector<StoredType> contentTypes = {};
@@ -52,6 +59,7 @@ namespace Stella {
             returnTypes = _returnTypes;
             contentTypes = _contentTypes;
         }
+
 
         /**
          * Comparator for StoredType is recursive to allow for handling any level of
@@ -106,8 +114,34 @@ namespace Stella {
             argsTypes = b.argsTypes;
             returnTypes = b.returnTypes;
             contentTypes = b.contentTypes;
+            genericTypes = b.genericTypes;
             nat_value = b.nat_value;
+            typeIdent = b.typeIdent;
+            resolved = b.resolved;
             return *this;
+        }
+
+        void deepGenericApplication(std::string target, StoredType replacer) {
+            if (resolved)
+                return;
+            for (int i = 0; i < genericTypes.size(); i++) {
+                if (genericTypes[i].typeIdent == target)
+                    return;
+            }
+            if (tag == VisitableTag::tagTypeGenericType && typeIdent == target) {
+                operator=(replacer);
+                resolved = true;
+            } else {
+                for (int i = 0; i < argsTypes.size(); i++) {
+                    argsTypes[i].deepGenericApplication(target, replacer);
+                }
+                for (int i = 0; i < returnTypes.size(); i++) {
+                    returnTypes[i].deepGenericApplication(target, replacer);
+                }
+                for (int i = 0; i < contentTypes.size(); i++) {
+                    contentTypes[i].deepGenericApplication(target, replacer);
+                }
+            }
         }
 
         /**
@@ -116,6 +150,7 @@ namespace Stella {
         void print() {
             std::cout << "\n===============\n";
             std::cout << "Ident:      " << ident << '\n';
+            std::cout << "TypeIdent:  " << typeIdent << '\n';
             std::cout << "Tag:        " << tag << '\n';
             std::cout << "ArgTags:     ";
             for (int i = 0; i < argsTypes.size(); i++) {
@@ -128,6 +163,10 @@ namespace Stella {
             std::cout << "ContentTags: ";
             for (int i = 0; i < contentTypes.size(); i++) {
                 std::cout << contentTypes[i].tag << " ";
+            } std::cout << '\n';
+            std::cout << "GenericTypeTags: ";
+            for (int i = 0; i < genericTypes.size(); i++) {
+                std::cout << genericTypes[i].tag << " ";
             } std::cout << '\n';
             std::cout << "\n===============\n";
         }
